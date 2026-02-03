@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Classroom Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>Student Dashboard</h2>
+            <div class="nav-links">
+                <span id="user-name"></span>
+                <a href="/logout" class="btn btn-secondary">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="showSection('notes')">Notes</button>
+            <button class="tab-btn" onclick="showSection('records')">My Records</button>
+            <button class="tab-btn" onclick="showSection('notices')">Notices</button>
+            <button class="tab-btn" onclick="showSection('zoom')">Zoom Class</button>
+            <button class="tab-btn" onclick="showSection('tests')">Tests</button>
+        </div>
+        
+        <!-- Notes Section -->
+        <div id="notes-section" class="section active">
+            <h2>Course Notes</h2>
+            <div id="notes-list" class="notes-list"></div>
+        </div>
+        
+        <!-- Records Section -->
+        <div id="records-section" class="section">
+            <h2>My Records</h2>
+            <div id="records-display" class="card">
+                <div id="records-content"></div>
+            </div>
+        </div>
+        
+        <!-- Notices Section -->
+        <div id="notices-section" class="section">
+            <h2>Notice Board</h2>
+            <div id="notices-list" class="notices-list"></div>
+        </div>
+        
+        <!-- Zoom Class Section -->
+        <div id="zoom-section" class="section">
+            <h2>Virtual Classroom</h2>
+            <div id="zoom-display" class="card">
+                <div id="zoom-content"></div>
+            </div>
+        </div>
+        
+        <!-- Tests Section -->
+        <div id="tests-section" class="section">
+            <h2>Available Tests</h2>
+            <div id="tests-list" class="tests-list"></div>
+        </div>
+    </div>
+    
+    <!-- Test Modal -->
+    <div id="test-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTestModal()">&times;</span>
+            <h2 id="test-modal-title"></h2>
+            <div id="test-modal-content"></div>
+            <button id="submit-test-btn" class="btn btn-primary" onclick="submitTest()">Submit Test</button>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/student.js') }}"></script>
+</body>
+</html>
+
+

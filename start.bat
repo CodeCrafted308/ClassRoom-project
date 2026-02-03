@@ -1,0 +1,55 @@
+@echo off
+echo ========================================
+echo Classroom Management System
+echo ========================================
+echo.
+
+echo Checking Python...
+python --version
+if errorlevel 1 (
+    echo ERROR: Python is not installed or not in PATH
+    pause
+    exit /b 1
+)
+echo.
+
+echo Activating virtual environment...
+call venv\Scripts\activate.bat
+if errorlevel 1 (
+    echo WARNING: Virtual environment not found, using system Python
+)
+echo.
+
+echo Installing/Checking dependencies...
+pip install -q -r requirements.txt
+if errorlevel 1 (
+    echo ERROR: Failed to install dependencies
+    pause
+    exit /b 1
+)
+echo Dependencies OK
+echo.
+
+echo Checking MongoDB connection...
+python -c "from pymongo import MongoClient; import os; client = MongoClient(os.getenv('MONGO_URI', 'mongodb://localhost:27017/'), serverSelectionTimeoutMS=3000); client.server_info(); print('MongoDB: Connected')" 2>nul
+if errorlevel 1 (
+    echo WARNING: MongoDB connection failed. Make sure MongoDB is running.
+    echo You can continue, but the app may not work properly.
+    echo.
+    set /p continue="Continue anyway? (Y/N): "
+    if /i not "%continue%"=="Y" exit /b 1
+)
+echo.
+
+echo ========================================
+echo Starting Flask Application...
+echo ========================================
+echo Server will be available at: http://localhost:5000
+echo Press Ctrl+C to stop the server
+echo ========================================
+echo.
+
+python app.py
+
+pause
+
