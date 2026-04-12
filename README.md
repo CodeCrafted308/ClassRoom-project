@@ -1,30 +1,29 @@
-# Classroom Management System
+# FastAPI Classroom Management System
 
-A full-stack web application for managing classroom activities, student records, course materials, and virtual learning sessions.
-
-## Technology Stack
-
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Backend**: Python Flask
-- **Database**: MongoDB
-- **Deployment**: Docker Compose
+A modern web-based classroom management system built with FastAPI, MongoDB, and responsive frontend technologies.
 
 ## Features
 
-### Teacher Features
-- Upload and manage course notes/resources
-- View and edit student records
-- Post announcements on notice board
-- Create and manage Zoom class links
-- Create multiple-choice tests with time windows
-- View test results and submissions
+- **User Authentication**: Secure login/registration system for teachers and students
+- **Role-based Access**: Different interfaces for teachers and students
+- **File Management**: Upload and download study materials
+- **Notice Board**: Post and view important announcements
+- **Test Management**: Create, conduct, and grade online tests
+- **Student Records**: Track attendance and academic performance
+- **Zoom Integration**: Manage virtual classroom links
 
-### Student Features
-- View and download course notes
-- Access personal records (scores, attendance)
-- View notices and announcements
-- Access Zoom class links
-- Take tests during active time windows
+## Tech Stack
+
+### Backend
+- **FastAPI**: Modern, fast web framework for building APIs
+- **MongoDB**: NoSQL database for data storage
+- **Pydantic**: Data validation and settings management
+- **Uvicorn**: ASGI server for FastAPI
+
+### Frontend
+- **HTML5/CSS3/JavaScript**: Responsive web interface
+- **Bootstrap**: UI framework for responsive design
+- **Jinja2**: Template engine for dynamic contents during active time windows
 
 ## Prerequisites
 

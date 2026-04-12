@@ -1,42 +1,18 @@
 #!/usr/bin/env python
 """
-Startup script for Classroom Management System
-This script checks prerequisites and provides helpful error messages
+FastAPI startup script for Classroom Management System
 """
-import sys
 import os
+import sys
+import subprocess
 
 def check_python_version():
-    """Check if Python version is 3.7+"""
-    if sys.version_info < (3, 7):
-        print("✗ Error: Python 3.7 or higher is required")
+    """Check if Python version is 3.8+"""
+    if sys.version_info < (3, 8):
+        print("✗ Error: Python 3.8 or higher is required for FastAPI")
         print(f"   Current version: {sys.version}")
         return False
     print(f"✓ Python version: {sys.version.split()[0]}")
-    return True
-
-def check_dependencies():
-    """Check if all required packages are installed"""
-    required_packages = {
-        'flask': 'Flask',
-        'flask_cors': 'flask-cors',
-        'pymongo': 'pymongo',
-        'werkzeug': 'werkzeug'
-    }
-    
-    missing = []
-    for module, package in required_packages.items():
-        try:
-            __import__(module)
-            print(f"✓ {package} installed")
-        except ImportError:
-            print(f"✗ {package} NOT installed")
-            missing.append(package)
-    
-    if missing:
-        print(f"\n✗ Missing packages: {', '.join(missing)}")
-        print("   Install them with: pip install -r requirements.txt")
-        return False
     return True
 
 def check_mongodb():
@@ -58,17 +34,12 @@ def check_mongodb():
 
 def main():
     print("="*60)
-    print("Classroom Management System - Startup Check")
+    print("FastAPI Classroom Management System - Startup")
     print("="*60)
     print()
     
     # Check Python version
     if not check_python_version():
-        sys.exit(1)
-    print()
-    
-    # Check dependencies
-    if not check_dependencies():
         sys.exit(1)
     print()
     
@@ -84,14 +55,20 @@ def main():
             sys.exit(1)
     
     print("="*60)
-    print("Starting Flask application...")
+    print("Starting FastAPI application...")
     print("="*60)
     print()
+    print("✓ Server will start on http://localhost:8000")
+    print("✓ API docs available at http://localhost:8000/docs")
+    print("✓ Press Ctrl+C to stop")
+    print()
     
-    # Import and run the app
+    # Start uvicorn with the correct module path
     try:
-        from app import app
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        import uvicorn
+        # Add parent directory to Python path
+        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+        uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
     except KeyboardInterrupt:
         print("\n\n✓ Server stopped by user")
     except Exception as e:
@@ -102,4 +79,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

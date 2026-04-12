@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Classroom Management System
+echo FastAPI Classroom Management System
 echo ========================================
 echo.
 
@@ -14,14 +14,14 @@ if errorlevel 1 (
 echo.
 
 echo Activating virtual environment...
-call venv\Scripts\activate.bat
+call ..\venv\Scripts\activate.bat
 if errorlevel 1 (
     echo WARNING: Virtual environment not found, using system Python
 )
 echo.
 
 echo Installing/Checking dependencies...
-pip install -q -r requirements.txt
+pip install -q -r ..\requirements.txt
 if errorlevel 1 (
     echo ERROR: Failed to install dependencies
     pause
@@ -42,14 +42,15 @@ if errorlevel 1 (
 echo.
 
 echo ========================================
-echo Starting Flask Application...
+echo Starting FastAPI Application...
 echo ========================================
-echo Server will be available at: http://localhost:5000
+echo Server will be available at: http://localhost:8000
+echo API docs available at: http://localhost:8000/docs
 echo Press Ctrl+C to stop the server
 echo ========================================
 echo.
 
-python app.py
+python start_fastapi.py
 
 pause
 
