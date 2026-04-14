@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Scholar Rank</title>
+    <link rel="stylesheet" href="/static/css/scholar-rank.css">
+    <script src="/static/js/theme.js"></script>
+</head>
+<body class="login-background">
+    <div class="bg-blob" aria-hidden="true"></div>
+    <div class="login-container">
+        <div class="login-box glass">
+            <div class="login-header">
+                <h1> Scholar Rank</h1>
+                <p class="login-tagline">Welcome Back to Your Academic Journey</p>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="form-container">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Login</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="/register" class="auth-link">Sign Up</a></p>
+                </div>
+            </div>
+            
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+    <script src="/static/js/login-auth.js"></script>
+</body>
+</html>

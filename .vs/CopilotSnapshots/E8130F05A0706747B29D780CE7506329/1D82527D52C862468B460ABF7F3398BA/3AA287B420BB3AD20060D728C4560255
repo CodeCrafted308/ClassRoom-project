@@ -1,4 +1,4 @@
-Write-Host "========================================" -ForegroundColor Cyan
+﻿Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Classroom Management System" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""

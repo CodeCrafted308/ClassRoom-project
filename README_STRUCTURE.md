@@ -63,6 +63,5 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
 1. **Separated Frontend/Backend**: Clean separation of concerns
 2. **Fixed Static File Paths**: Proper path resolution for FastAPI
-3. **Updated Templates**: Removed Flask `url_for` usage
-4. **Organized Startup Scripts**: Multiple ways to start the application
-5. **Cleaned Structure**: Removed duplicate and unnecessary files
+3. **Organized Startup Scripts**: Multiple ways to start the application
+4. **Cleaned Structure**: Removed duplicate and unnecessary files

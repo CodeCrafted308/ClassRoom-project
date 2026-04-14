@@ -10,58 +10,96 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h2>Student Dashboard</h2>
-            <div class="nav-links">
-                <span id="user-name"></span>
-                <a href="/logout" class="btn btn-secondary">Logout</a>
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-                    <span id="theme-icon">🌙</span>
-                </button>
+            <div class="header-left">
+                <h2>Scholar Rank</h2>
+                <div class="nav-links">
+                    <a href="/home" class="nav-link">🏠 Home</a>
+                    <a href="/student/dashboard" class="nav-link">📊 Dashboard</a>
+                    <a href="/student/dashboard?section=notes" class="nav-link">📝 Notes</a>
+                    <a href="/student/dashboard?section=tests" class="nav-link">📝 Tests</a>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span id="user-name" class="user-name">Student</span>
+                    <div class="user-avatar">👨‍🎓</div>
+                </div>
+                <div class="header-actions">
+                    <a href="/logout" class="btn btn-secondary btn-small">Logout</a>
+                </div>
             </div>
         </div>
     </nav>
     
     <div class="container">
+        <!-- Teacher Selection Section -->
+        <div class="teacher-selection">
+            <div class="card">
+                <h3>👨‍🏫 Select Teacher</h3>
+                <div class="teacher-list" id="teacher-list">
+                    <div class="loading">Loading teachers...</div>
+                </div>
+            </div>
+        </div>
+        
         <div class="tabs-nav">
-            <button class="tab-btn active" onclick="showSection('notes')">Notes</button>
-            <button class="tab-btn" onclick="showSection('records')">My Records</button>
-            <button class="tab-btn" onclick="showSection('notices')">Notices</button>
-            <button class="tab-btn" onclick="showSection('zoom')">Zoom Class</button>
+            <button class="tab-btn active" onclick="showSection('notes')">📝 Notes</button>
+            <button class="tab-btn" onclick="showSection('records')">👥 My Records</button>
+            <button class="tab-btn" onclick="showSection('notices')">📢 Notices</button>
+            <button class="tab-btn" onclick="showSection('zoom')">🎥 Zoom Class</button>
             <button class="tab-btn" onclick="showSection('tests')">Tests</button>
         </div>
         
+        <!-- Debug Info -->
+        <div style="background: #f0f0f0; color: white; padding: 10px; margin: 10px; border-radius: 5px; font-family: monospace;">
+            <div>DEBUG INFO:</div>
+            <div id="debug-info">Loading...</div>
+            <div>Selected Teacher: <span id="debug-teacher">None</span></div>
+            <div>Function Status: <span id="debug-status">Checking...</span></div>
+        </div>
+        
         <!-- Notes Section -->
-        <div id="notes-section" class="section active">
-            <h2>Course Notes</h2>
-            <div id="notes-list" class="notes-list"></div>
+        <div id="notes-section" class="dashboard-section active">
+            <div class="card">
+                <h2>Course Notes</h2>
+                <div id="notes-list" class="notes-list"></div>
+            </div>
         </div>
         
         <!-- Records Section -->
-        <div id="records-section" class="section">
-            <h2>My Records</h2>
-            <div id="records-display" class="card">
-                <div id="records-content"></div>
+        <div id="records-section" class="dashboard-section">
+            <div class="card">
+                <h2>My Records</h2>
+                <div id="records-display">
+                    <div id="records-content"></div>
+                </div>
             </div>
         </div>
         
         <!-- Notices Section -->
-        <div id="notices-section" class="section">
-            <h2>Notice Board</h2>
-            <div id="notices-list" class="notices-list"></div>
+        <div id="notices-section" class="dashboard-section">
+            <div class="card">
+                <h2>Notice Board</h2>
+                <div id="notices-list" class="notices-list"></div>
+            </div>
         </div>
         
         <!-- Zoom Class Section -->
-        <div id="zoom-section" class="section">
-            <h2>Virtual Classroom</h2>
-            <div id="zoom-display" class="card">
-                <div id="zoom-content"></div>
+        <div id="zoom-section" class="dashboard-section">
+            <div class="card">
+                <h2>Virtual Classroom</h2>
+                <div id="zoom-display">
+                    <div id="zoom-content"></div>
+                </div>
             </div>
         </div>
         
         <!-- Tests Section -->
-        <div id="tests-section" class="section">
-            <h2>Available Tests</h2>
-            <div id="tests-list" class="tests-list"></div>
+        <div id="tests-section" class="dashboard-section">
+            <div class="card">
+                <h2>Available Tests</h2>
+                <div id="tests-list" class="tests-list"></div>
+            </div>
         </div>
     </div>
     
@@ -75,7 +113,7 @@
         </div>
     </div>
     
-    <script src="{{ url_for('static', filename='js/student.js') }}"></script>
+    <script src="/static/js/student.js"></script>
 </body>
 </html>
 

@@ -66,9 +66,10 @@ def main():
     # Start uvicorn with the correct module path
     try:
         import uvicorn
-        # Add parent directory to Python path
+        # Add project root to Python path so imports resolve correctly
         sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-        uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
+        # The FastAPI app lives in backend/src/main.py -> module `backend.src.main`
+        uvicorn.run("backend.src.main:app", host="0.0.0.0", port=8000, reload=True)
     except KeyboardInterrupt:
         print("\n\n✓ Server stopped by user")
     except Exception as e:

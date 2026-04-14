@@ -35,83 +35,50 @@ Before running the application, ensure you have:
 
 ## Setup Instructions
 
-### Option 1: Local Development (Without Docker)
+### Local Development (Without Docker)
 
-#### Step 1: Install Python Dependencies
+1. Create and activate a virtual environment (recommended)
 
-```bash
-# Create a virtual environment (recommended)
+```powershell
 python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
+# On Windows (PowerShell)
+.\venv\Scripts\Activate.ps1
+# On macOS/Linux
 source venv/bin/activate
-
-# Install required packages
-pip install -r requirements.txt
 ```
 
-#### Step 2: Start MongoDB
+2. Install Python dependencies
 
-**Windows:**
-```bash
-# If MongoDB is installed as a service, it should start automatically
-# Or start it manually:
-mongod
+```powershell
+pip install -r backend/requirements.txt
 ```
 
-**macOS (using Homebrew):**
-```bash
-brew services start mongodb-community
+3. Start MongoDB (optional but recommended for persistent data)
+
+- If running locally: start `mongod` or use your OS service manager
+- Or use MongoDB Atlas and set the `MONGO_URI` environment variable
+
+4. Run the FastAPI server (uvicorn)
+
+```powershell
+# from project root
+uvicorn backend.src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Linux:**
-```bash
-sudo systemctl start mongod
-```
+Open http://localhost:8000/login in your browser. API docs are at http://localhost:8000/docs
 
-**Or use MongoDB Atlas (Cloud):**
-- Create a free account at https://www.mongodb.com/cloud/atlas
-- Get your connection string
-- Update the connection string in `app.py` (line 18)
+### Docker (optional)
 
-#### Step 3: Run the Flask Application
+You can containerize the application with Docker and MongoDB. If you prefer
+to run using Docker Compose, create a `docker-compose.yml` that starts both
+the FastAPI app and a MongoDB service, then run:
 
 ```bash
-python app.py
-```
-
-The application will start on `http://localhost:5000`
-
-### Option 2: Docker Compose (Recommended)
-
-#### Step 1: Build and Start Containers
-
-```bash
-# Build and start all services (Flask app + MongoDB)
 docker-compose up --build
 ```
 
-This will:
-- Start MongoDB container on port 27017
-- Start Flask application on port 5000
-- Create necessary volumes for data persistence
-
-#### Step 2: Access the Application
-
-Open your browser and navigate to: `http://localhost:5000`
-
-#### Step 3: Stop the Application
-
-```bash
-# Stop containers (press Ctrl+C or run):
-docker-compose down
-
-# To also remove volumes (clean slate):
-docker-compose down -v
-```
+The FastAPI server in the container should expose port 8000 by default. If
+you don't use Docker, follow the local development instructions above.
 
 ## First-Time Setup
 
@@ -207,24 +174,16 @@ For the best experience, create a teacher account first:
 
 ```
 classroom/
-├── app.py                 # Flask backend application
-├── requirements.txt       # Python dependencies
-├── Dockerfile            # Docker image configuration
-├── docker-compose.yml    # Docker Compose configuration
-├── README.md             # This file
-├── .gitignore           # Git ignore rules
-├── templates/           # HTML templates
-│   ├── login.html
-│   ├── teacher_dashboard.html
-│   └── student_dashboard.html
-├── static/              # Static files
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── auth.js
-│       ├── teacher.js
-│       └── student.js
-└── uploads/            # Uploaded files (created automatically)
+├── backend/
+│   ├── requirements.txt       # Python dependencies for backend
+│   └── src/
+│       └── main.py            # FastAPI application entrypoint
+├── frontend/
+│   ├── templates/             # Jinja2 templates
+│   └── static/                # Static assets (css, js, images)
+├── README.md                  # This file
+├── .gitignore                 # Git ignore rules
+└── uploads/                   # Uploaded files (created automatically)
 ```
 
 ## API Endpoints

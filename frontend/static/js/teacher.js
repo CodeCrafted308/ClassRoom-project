@@ -1,475 +1,443 @@
-let currentTest = null;
-let questionCount = 0;
-
-function showSection(section) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    document.getElementById(`${section}-section`).classList.add('active');
-    event.target.classList.add('active');
-    
-    // Load data when section is shown
-    if (section === 'notes') {
-        loadNotes();
-    } else if (section === 'students') {
-        loadStudents();
-    } else if (section === 'notices') {
-        loadNotices();
-    } else if (section === 'zoom') {
-        loadZoomLink();
-    } else if (section === 'tests') {
-        loadTests();
+// Teacher Dashboard JavaScript
+class TeacherDashboard {
+    constructor() {
+        this.currentSection = 'notes';
+        this.init();
     }
-}
 
-// Notes Management
-document.getElementById('uploadNoteForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData();
-    formData.append('file', document.getElementById('note-file').files[0]);
-    formData.append('title', document.getElementById('note-title').value);
-    formData.append('subject', document.getElementById('note-subject').value);
-    formData.append('description', document.getElementById('note-description').value);
-    
-    try {
-        const response = await fetch('/api/teacher/notes', {
-            method: 'POST',
-            body: formData
+    init() {
+        this.setupEventListeners();
+        this.loadDashboardData();
+        this.updateSectionVisibility();
+    }
+
+    setupEventListeners() {
+        // Tab navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = btn.getAttribute('onclick').match(/showSection\('([^']+)'\)/)[1];
+                if (section) {
+                    this.showSection(section);
+                }
+            });
         });
-        
-        const data = await response.json();
-        if (data.success) {
-            alert('Note uploaded successfully!');
-            document.getElementById('uploadNoteForm').reset();
-            loadNotes();
-        } else {
-            alert('Error: ' + (data.error || 'Failed to upload note'));
-        }
-    } catch (error) {
-        alert('An error occurred while uploading the note.');
-    }
-});
 
-async function loadNotes() {
-    try {
-        const response = await fetch('/api/teacher/notes');
-        const notes = await response.json();
-        
-        const notesList = document.getElementById('notes-list');
-        notesList.innerHTML = '';
-        
-        if (notes.length === 0) {
-            notesList.innerHTML = '<p>No notes uploaded yet.</p>';
-            return;
-        }
-        
-        notes.forEach(note => {
-            const noteItem = document.createElement('div');
-            noteItem.className = 'note-item';
-            noteItem.innerHTML = `
-                <h4>${note.title}</h4>
-                <p><strong>Subject:</strong> ${note.subject}</p>
-                <p>${note.description || 'No description'}</p>
-                <p class="meta">Uploaded: ${new Date(note.uploaded_at).toLocaleString()}</p>
-                <div class="note-actions">
-                    <a href="/api/student/download/${note.filename}" class="btn btn-primary" download>Download</a>
-                    <button class="btn btn-danger" onclick="deleteNote('${note._id}')">Delete</button>
-                </div>
-            `;
-            notesList.appendChild(noteItem);
+        // Header navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const href = link.getAttribute('href');
+                window.location.href = href;
+            });
         });
-    } catch (error) {
-        console.error('Error loading notes:', error);
-    }
-}
 
-async function deleteNote(noteId) {
-    if (!confirm('Are you sure you want to delete this note?')) return;
-    
-    try {
-        const response = await fetch(`/api/teacher/notes/${noteId}`, {
-            method: 'DELETE'
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            loadNotes();
-        } else {
-            alert('Error deleting note');
-        }
-    } catch (error) {
-        alert('An error occurred while deleting the note.');
-    }
-}
-
-// Student Records
-async function loadStudents() {
-    try {
-        const response = await fetch('/api/teacher/students');
-        const students = await response.json();
-        
-        const studentsList = document.getElementById('students-list');
-        studentsList.innerHTML = '';
-        
-        if (students.length === 0) {
-            studentsList.innerHTML = '<p>No students registered yet.</p>';
-            return;
-        }
-        
-        students.forEach(student => {
-            const studentItem = document.createElement('div');
-            studentItem.className = 'student-item';
-            studentItem.innerHTML = `
-                <h4>${student.name}</h4>
-                <p>Email: ${student.email}</p>
-                <button class="btn btn-primary" onclick="toggleStudentDetails('${student._id}')">View/Edit Records</button>
-                <div id="details-${student._id}" class="student-details">
-                    <h4>Student Records</h4>
-                    <form class="record-form" onsubmit="updateStudentRecord(event, '${student._id}')">
-                        <div class="form-group">
-                            <label>Test Scores (JSON format: [{"test": "Test 1", "score": 85}])</label>
-                            <textarea id="scores-${student._id}">${JSON.stringify(student.records?.test_scores || [], null, 2)}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Attendance (JSON format: [{"date": "2024-01-15", "status": "present"}])</label>
-                            <textarea id="attendance-${student._id}">${JSON.stringify(student.records?.attendance || [], null, 2)}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Notes</label>
-                            <textarea id="notes-${student._id}">${student.records?.notes || ''}</textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Records</button>
-                    </form>
-                </div>
-            `;
-            studentsList.appendChild(studentItem);
-        });
-    } catch (error) {
-        console.error('Error loading students:', error);
-    }
-}
-
-function toggleStudentDetails(studentId) {
-    const details = document.getElementById(`details-${studentId}`);
-    details.classList.toggle('active');
-}
-
-async function updateStudentRecord(e, studentId) {
-    e.preventDefault();
-    
-    try {
-        const testScores = JSON.parse(document.getElementById(`scores-${studentId}`).value);
-        const attendance = JSON.parse(document.getElementById(`attendance-${studentId}`).value);
-        const notes = document.getElementById(`notes-${studentId}`).value;
-        
-        const response = await fetch(`/api/teacher/student-records/${studentId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                test_scores: testScores,
-                attendance: attendance,
-                notes: notes
-            })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            alert('Records updated successfully!');
-            loadStudents();
-        } else {
-            alert('Error updating records');
-        }
-    } catch (error) {
-        alert('Error: Invalid JSON format or other error occurred.');
-    }
-}
-
-// Notices
-document.getElementById('noticeForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const title = document.getElementById('notice-title').value;
-    const content = document.getElementById('notice-content').value;
-    
-    try {
-        const response = await fetch('/api/teacher/notices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ title, content })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            alert('Notice posted successfully!');
-            document.getElementById('noticeForm').reset();
-            loadNotices();
-        } else {
-            alert('Error posting notice');
-        }
-    } catch (error) {
-        alert('An error occurred while posting the notice.');
-    }
-});
-
-async function loadNotices() {
-    try {
-        const response = await fetch('/api/teacher/notices');
-        const notices = await response.json();
-        
-        const noticesList = document.getElementById('notices-list');
-        noticesList.innerHTML = '';
-        
-        if (notices.length === 0) {
-            noticesList.innerHTML = '<p>No notices posted yet.</p>';
-            return;
-        }
-        
-        notices.forEach(notice => {
-            const noticeItem = document.createElement('div');
-            noticeItem.className = 'notice-item';
-            noticeItem.innerHTML = `
-                <h4>${notice.title}</h4>
-                <p>${notice.content}</p>
-                <p class="meta">Posted: ${new Date(notice.posted_at).toLocaleString()}</p>
-            `;
-            noticesList.appendChild(noticeItem);
-        });
-    } catch (error) {
-        console.error('Error loading notices:', error);
-    }
-}
-
-// Zoom Link
-document.getElementById('zoomForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const url = document.getElementById('zoom-url').value;
-    const meetingId = document.getElementById('zoom-meeting-id').value;
-    const password = document.getElementById('zoom-password').value;
-    const scheduledTime = document.getElementById('zoom-time').value;
-    
-    try {
-        const response = await fetch('/api/teacher/zoom-link', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ url, meeting_id: meetingId, password, scheduled_time: scheduledTime })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            alert('Zoom link set successfully!');
-            document.getElementById('zoomForm').reset();
-            loadZoomLink();
-        } else {
-            alert('Error setting zoom link');
-        }
-    } catch (error) {
-        alert('An error occurred while setting the zoom link.');
-    }
-});
-
-async function loadZoomLink() {
-    try {
-        const response = await fetch('/api/teacher/zoom-link');
-        const zoomLink = await response.json();
-        
-        const zoomDisplay = document.getElementById('current-zoom-link');
-        if (zoomLink && zoomLink.url) {
-            zoomDisplay.innerHTML = `
-                <h4>Current Zoom Link</h4>
-                <p><strong>URL:</strong> <a href="${zoomLink.url}" target="_blank" class="zoom-link">Join Meeting</a></p>
-                ${zoomLink.meeting_id ? `<p><strong>Meeting ID:</strong> ${zoomLink.meeting_id}</p>` : ''}
-                ${zoomLink.password ? `<p><strong>Password:</strong> ${zoomLink.password}</p>` : ''}
-                ${zoomLink.scheduled_time ? `<p><strong>Scheduled Time:</strong> ${new Date(zoomLink.scheduled_time).toLocaleString()}</p>` : ''}
-                <p class="meta">Created: ${new Date(zoomLink.created_at).toLocaleString()}</p>
-            `;
-        } else {
-            zoomDisplay.innerHTML = '<p>No zoom link set yet.</p>';
-        }
-    } catch (error) {
-        console.error('Error loading zoom link:', error);
-    }
-}
-
-// Test Management
-function addQuestion() {
-    questionCount++;
-    const questionsList = document.getElementById('questions-list');
-    const questionDiv = document.createElement('div');
-    questionDiv.className = 'question-item';
-    questionDiv.id = `question-${questionCount}`;
-    questionDiv.innerHTML = `
-        <div class="form-group">
-            <label>Question ${questionCount}</label>
-            <input type="text" id="q-text-${questionCount}" placeholder="Enter question" required>
-        </div>
-        <div class="form-group">
-            <label>Options</label>
-            <div class="option-input">
-                <input type="radio" name="correct-${questionCount}" value="0" required>
-                <input type="text" id="q-opt0-${questionCount}" placeholder="Option A" required>
-            </div>
-            <div class="option-input">
-                <input type="radio" name="correct-${questionCount}" value="1" required>
-                <input type="text" id="q-opt1-${questionCount}" placeholder="Option B" required>
-            </div>
-            <div class="option-input">
-                <input type="radio" name="correct-${questionCount}" value="2" required>
-                <input type="text" id="q-opt2-${questionCount}" placeholder="Option C" required>
-            </div>
-            <div class="option-input">
-                <input type="radio" name="correct-${questionCount}" value="3" required>
-                <input type="text" id="q-opt3-${questionCount}" placeholder="Option D" required>
-            </div>
-        </div>
-        <button type="button" class="btn btn-danger" onclick="removeQuestion(${questionCount})">Remove Question</button>
-    `;
-    questionsList.appendChild(questionDiv);
-}
-
-function removeQuestion(qNum) {
-    const questionDiv = document.getElementById(`question-${qNum}`);
-    questionDiv.remove();
-}
-
-document.getElementById('testForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const questions = [];
-    const questionItems = document.querySelectorAll('.question-item');
-    
-    questionItems.forEach(item => {
-        const qNum = item.id.split('-')[1];
-        const questionText = document.getElementById(`q-text-${qNum}`).value;
-        const options = [
-            document.getElementById(`q-opt0-${qNum}`).value,
-            document.getElementById(`q-opt1-${qNum}`).value,
-            document.getElementById(`q-opt2-${qNum}`).value,
-            document.getElementById(`q-opt3-${qNum}`).value
-        ];
-        const correctAnswer = document.querySelector(`input[name="correct-${qNum}"]:checked`).value;
-        
-        questions.push({
-            question: questionText,
-            options: options,
-            correct_answer: parseInt(correctAnswer)
-        });
-    });
-    
-    if (questions.length === 0) {
-        alert('Please add at least one question');
-        return;
-    }
-    
-    const title = document.getElementById('test-title').value;
-    const description = document.getElementById('test-description').value;
-    const startTime = document.getElementById('test-start-time').value;
-    const endTime = document.getElementById('test-end-time').value;
-    
-    try {
-        const response = await fetch('/api/teacher/tests', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title,
-                description,
-                questions,
-                start_time: startTime,
-                end_time: endTime
-            })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            alert('Test created successfully!');
-            document.getElementById('testForm').reset();
-            document.getElementById('questions-list').innerHTML = '';
-            questionCount = 0;
-            loadTests();
-        } else {
-            alert('Error creating test');
-        }
-    } catch (error) {
-        alert('An error occurred while creating the test.');
-    }
-});
-
-async function loadTests() {
-    try {
-        const response = await fetch('/api/teacher/tests');
-        const tests = await response.json();
-        
-        const testsList = document.getElementById('tests-list');
-        testsList.innerHTML = '';
-        
-        if (tests.length === 0) {
-            testsList.innerHTML = '<p>No tests created yet.</p>';
-            return;
-        }
-        
-        tests.forEach(test => {
-            const testItem = document.createElement('div');
-            testItem.className = 'test-item';
-            const startTime = new Date(test.start_time);
-            const endTime = new Date(test.end_time);
-            const now = new Date();
-            const isActive = now >= startTime && now <= endTime;
-            
-            testItem.innerHTML = `
-                <h4>${test.title}</h4>
-                <p>${test.description || 'No description'}</p>
-                <p><strong>Start:</strong> ${startTime.toLocaleString()}</p>
-                <p><strong>End:</strong> ${endTime.toLocaleString()}</p>
-                <p><strong>Questions:</strong> ${test.questions.length}</p>
-                <p><strong>Status:</strong> ${isActive ? '<span style="color: green;">Active</span>' : '<span style="color: red;">Inactive</span>'}</p>
-                <div class="test-actions">
-                    <button class="btn btn-primary" onclick="viewTestResults('${test._id}')">View Results</button>
-                </div>
-            `;
-            testsList.appendChild(testItem);
-        });
-    } catch (error) {
-        console.error('Error loading tests:', error);
-    }
-}
-
-async function viewTestResults(testId) {
-    try {
-        const response = await fetch(`/api/teacher/tests/${testId}/results`);
-        const results = await response.json();
-        
-        let resultsHtml = '<h3>Test Results</h3>';
-        if (results.length === 0) {
-            resultsHtml += '<p>No submissions yet.</p>';
-        } else {
-            results.forEach(result => {
-                resultsHtml += `
-                    <div class="test-item">
-                        <p><strong>Student ID:</strong> ${result.student_id}</p>
-                        <p><strong>Score:</strong> ${result.score}/${result.total}</p>
-                        <p><strong>Submitted:</strong> ${new Date(result.submitted_at).toLocaleString()}</p>
-                    </div>
-                `;
+        // Form submissions
+        const uploadNoteForm = document.getElementById('uploadNoteForm');
+        if (uploadNoteForm) {
+            uploadNoteForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.uploadNote();
             });
         }
+
+        const noticeForm = document.getElementById('noticeForm');
+        if (noticeForm) {
+            noticeForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.postNotice();
+            });
+        }
+
+        const zoomForm = document.getElementById('zoomForm');
+        if (zoomForm) {
+            zoomForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.setZoomLink();
+            });
+        }
+
+        const testForm = document.getElementById('testForm');
+        if (testForm) {
+            testForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.createTest();
+            });
+        }
+    }
+
+    showSection(section) {
+        this.currentSection = section;
+        this.updateSectionVisibility();
+        this.loadSectionData(section);
+    }
+
+    updateSectionVisibility() {
+        // Hide all sections
+        document.querySelectorAll('.dashboard-section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        // Show selected section
+        const activeSection = document.getElementById(`${this.currentSection}-section`);
+        if (activeSection) {
+            activeSection.classList.add('active');
+        }
+
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
         
-        alert('Results:\n' + resultsHtml.replace(/<[^>]*>/g, '\n'));
-    } catch (error) {
-        alert('Error loading test results');
+        const activeBtn = document.querySelector(`[onclick="showSection('${this.currentSection}')"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+    }
+
+    loadSectionData(section) {
+        switch(section) {
+            case 'notes':
+                this.loadNotesData();
+                break;
+            case 'students':
+                this.loadStudentsData();
+                break;
+            case 'notices':
+                this.loadNoticesData();
+                break;
+            case 'zoom':
+                this.loadZoomData();
+                break;
+            case 'tests':
+                this.loadTestsData();
+                break;
+        }
+    }
+
+    // API calls
+    async uploadNote() {
+        const formData = new FormData(document.getElementById('uploadNoteForm'));
+        
+        try {
+            const response = await fetch('/api/teacher/notes', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showMessage('Note uploaded successfully!', 'success');
+                this.loadNotesData();
+            } else {
+                this.showMessage('Failed to upload note', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Error uploading note', 'error');
+        }
+    }
+
+    async postNotice() {
+        const formData = new FormData(document.getElementById('noticeForm'));
+        const title = document.getElementById('notice-title').value;
+        const content = document.getElementById('notice-content').value;
+        
+        formData.append('title', title);
+        formData.append('content', content);
+
+        try {
+            const response = await fetch('/api/teacher/notices', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showMessage('Notice posted successfully!', 'success');
+                this.loadNoticesData();
+            } else {
+                this.showMessage('Failed to post notice', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Error posting notice', 'error');
+        }
+    }
+
+    async setZoomLink() {
+        const formData = new FormData(document.getElementById('zoomForm'));
+        const url = document.getElementById('zoom-url').value;
+        const meetingId = document.getElementById('zoom-meeting-id').value;
+        const password = document.getElementById('zoom-password').value;
+        const time = document.getElementById('zoom-time').value;
+        
+        formData.append('url', url);
+        formData.append('meeting_id', meetingId);
+        formData.append('password', password);
+        formData.append('scheduled_time', time);
+
+        try {
+            const response = await fetch('/api/teacher/zoom-link', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showMessage('Zoom link set successfully!', 'success');
+                this.loadZoomData();
+            } else {
+                this.showMessage('Failed to set Zoom link', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Error setting Zoom link', 'error');
+        }
+    }
+
+    async createTest() {
+        const formData = new FormData(document.getElementById('testForm'));
+        const title = document.getElementById('test-title').value;
+        const description = document.getElementById('test-description').value;
+        const startTime = document.getElementById('test-start-time').value;
+        const endTime = document.getElementById('test-end-time').value;
+        
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('start_time', startTime);
+        formData.append('end_time', endTime);
+
+        try {
+            const response = await fetch('/api/teacher/tests', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showMessage('Test created successfully!', 'success');
+                this.loadTestsData();
+            } else {
+                this.showMessage('Failed to create test', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Error creating test', 'error');
+        }
+    }
+
+    // Data loading methods
+    async loadNotesData() {
+        try {
+            const response = await fetch('/api/teacher/notes');
+            if (response.ok) {
+                const notes = await response.json();
+                this.displayNotes(notes);
+            }
+        } catch (error) {
+            console.error('Error loading notes:', error);
+        }
+    }
+
+    async loadStudentsData() {
+        try {
+            const response = await fetch('/api/teacher/students');
+            if (response.ok) {
+                const students = await response.json();
+                this.displayStudents(students);
+            }
+        } catch (error) {
+            console.error('Error loading students:', error);
+        }
+    }
+
+    async loadNoticesData() {
+        try {
+            const response = await fetch('/api/teacher/notices');
+            if (response.ok) {
+                const notices = await response.json();
+                this.displayNotices(notices);
+            }
+        } catch (error) {
+            console.error('Error loading notices:', error);
+        }
+    }
+
+    async loadZoomData() {
+        try {
+            const response = await fetch('/api/teacher/zoom-link');
+            if (response.ok) {
+                const zoomData = await response.json();
+                this.displayZoomLink(zoomData);
+            }
+        } catch (error) {
+            console.error('Error loading Zoom data:', error);
+        }
+    }
+
+    async loadTestsData() {
+        try {
+            const response = await fetch('/api/teacher/tests');
+            if (response.ok) {
+                const tests = await response.json();
+                this.displayTests(tests);
+            }
+        } catch (error) {
+            console.error('Error loading tests:', error);
+        }
+    }
+
+    // Display methods
+    displayNotes(notes) {
+        const notesList = document.getElementById('notes-list');
+        if (notesList && notes.length > 0) {
+            notesList.innerHTML = notes.map(note => `
+                <div class="note-item">
+                    <div class="note-header">
+                        <span class="note-title">${note.title}</span>
+                        <span class="note-date">${new Date(note.uploaded_at).toLocaleDateString()}</span>
+                    </div>
+                    <p class="note-desc">${note.description || 'No description'}</p>
+                    <button class="btn btn-small btn-outline" onclick="deleteNote('${note._id}')">Delete</button>
+                </div>
+            `).join('');
+        } else {
+            notesList.innerHTML = '<p>No notes uploaded yet.</p>';
+        }
+    }
+
+    displayStudents(students) {
+        const studentsList = document.getElementById('students-list');
+        if (studentsList && students.length > 0) {
+            studentsList.innerHTML = students.map(student => `
+                <div class="student-item">
+                    <div class="student-info">
+                        <span class="student-name">${student.name}</span>
+                        <span class="student-email">${student.email}</span>
+                    </div>
+                    <div class="student-stats">
+                        <span class="stat">Attendance: ${student.attendance || '0'}%</span>
+                        <span class="stat">Tests: ${student.test_count || '0'}</span>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            studentsList.innerHTML = '<p>No students found.</p>';
+        }
+    }
+
+    displayNotices(notices) {
+        const noticesList = document.getElementById('notices-list');
+        if (noticesList && notices.length > 0) {
+            noticesList.innerHTML = notices.map(notice => `
+                <div class="notice-item">
+                    <div class="notice-header">
+                        <span class="notice-title">${notice.title}</span>
+                        <span class="notice-date">${new Date(notice.posted_at).toLocaleDateString()}</span>
+                    </div>
+                    <p class="notice-content">${notice.content}</p>
+                    <button class="btn btn-small btn-outline" onclick="deleteNotice('${notice._id}')">Delete</button>
+                </div>
+            `).join('');
+        } else {
+            noticesList.innerHTML = '<p>No notices posted yet.</p>';
+        }
+    }
+
+    displayZoomLink(zoomData) {
+        const zoomDisplay = document.getElementById('current-zoom-link');
+        if (zoomData) {
+            zoomDisplay.innerHTML = `
+                <div class="zoom-info">
+                    <h4>Current Zoom Link</h4>
+                    <p><strong>URL:</strong> ${zoomData.url}</p>
+                    <p><strong>Meeting ID:</strong> ${zoomData.meeting_id || 'Not set'}</p>
+                    <p><strong>Password:</strong> ${zoomData.password || 'Not set'}</p>
+                    <p><strong>Scheduled:</strong> ${zoomData.scheduled_time ? new Date(zoomData.scheduled_time).toLocaleString() : 'Not set'}</p>
+                </div>
+            `;
+        } else {
+            zoomDisplay.innerHTML = '<p>No Zoom link set yet.</p>';
+        }
+    }
+
+    displayTests(tests) {
+        const testsList = document.getElementById('tests-list');
+        if (testsList && testsList.length > 0) {
+            testsList.innerHTML = tests.map(test => `
+                <div class="test-item">
+                    <div class="test-header">
+                        <span class="test-title">${test.title}</span>
+                        <span class="test-date">${new Date(test.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p class="test-desc">${test.description || 'No description'}</p>
+                    <p><strong>Start:</strong> ${new Date(test.start_time).toLocaleString()}</p>
+                    <p><strong>End:</strong> ${new Date(test.end_time).toLocaleString()}</p>
+                    <button class="btn btn-small btn-outline" onclick="deleteTest('${test._id}')">Delete</button>
+                </div>
+            `).join('');
+        } else {
+            testsList.innerHTML = '<p>No tests created yet.</p>';
+        }
+    }
+
+    showMessage(message, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = message;
+        
+        // Insert at the top of main content
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.insertBefore(messageDiv, mainContent.firstChild);
+        }
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 5000);
+    }
+
+    addQuestion() {
+        const questionsList = document.getElementById('questions-list');
+        const questionCount = questionsList.children.length;
+        
+        const newQuestion = document.createElement('div');
+        newQuestion.className = 'question-item';
+        newQuestion.innerHTML = `
+            <div class="question-header">
+                <span>Question ${questionCount + 1}</span>
+                <button class="btn btn-small btn-outline" onclick="removeQuestion(this)">Remove</button>
+            </div>
+            <div class="question-body">
+                <input type="text" placeholder="Enter question" class="question-input">
+                <input type="text" placeholder="Enter answer" class="question-input">
+            </div>
+        `;
+        
+        questionsList.appendChild(newQuestion);
+    }
+
+    removeQuestion(element) {
+        element.remove();
+        // Update question numbers
+        const questions = document.querySelectorAll('.question-item');
+        questions.forEach((q, index) => {
+            const header = q.querySelector('.question-header span');
+            if (header) {
+                header.textContent = `Question ${index + 1}`;
+            }
+        });
     }
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadNotes();
-});
+// Global function for navigation
+function showSection(section) {
+    if (window.teacherDashboard) {
+        window.teacherDashboard.showSection(section);
+    }
+}
 
+// Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.teacherDashboard = new TeacherDashboard();
+});

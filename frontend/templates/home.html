@@ -5,75 +5,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Scholar Rank</title>
     <link rel="stylesheet" href="/static/css/scholar-rank.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <script src="/static/js/theme.js"></script>
     <script src="/static/js/auth.js"></script>
 </head>
-<body>
-    <!-- Header -->
+<body class="home-background">
+    <!-- Professional Header -->
     <header class="main-header">
         <div class="header-container">
-            <div class="logo-section">
-                <h1 class="logo">🎓 Scholar Rank</h1>
-                <p class="tagline">Elevate Your Academic Journey</p>
+            <div class="header-left">
+                <div class="brand-section">
+                    <h1 class="brand-logo">Scholar Rank</h1>
+                    <p class="brand-tagline">Professional Academic Excellence</p>
+                </div>
             </div>
-            <nav class="header-nav">
-                <a href="/login" class="nav-link">Login</a>
-                <a href="/login" class="nav-link">Get Started</a>
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-                    <span id="theme-icon">🌙</span>
-                </button>
-            </nav>
+            <div class="header-right">
+                <nav class="header-nav">
+                    <a href="/home" class="nav-link active">Home</a>
+                    <a href="/login" class="nav-link">Login</a>
+                    <a href="/register" class="nav-link">Get Started</a>
+                </nav>
+            </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
+    <!-- Isometric Learning Hero Section -->
+    <section class="hero-section isometric-hero">
         <div class="hero-content">
-            <h2>Rank Your Academic Excellence</h2>
-            <p>Join Scholar Rank - Where Education Meets Innovation. Track progress, share knowledge, and achieve your academic goals.</p>
-            <div class="hero-buttons">
-                <a href="/login" class="btn btn-primary btn-large">Start Ranking</a>
-                <a href="/login" class="btn btn-secondary btn-large">Join Scholars</a>
+            <div class="hero-left">
+                <div class="hero-badge">
+                    <span class="badge-icon">🚀</span>
+                    <span class="badge-text">Next-Gen Learning</span>
+                </div>
+                <div class="hero-text">
+                    <h1>Learn Without Limits</h1>
+                    <p>Experience the future of education with our interactive online learning platform. Connect with expert teachers, access quality courses, and achieve your academic goals from anywhere in the world.</p>
+                    <div class="hero-actions">
+                        <a href="/login" class="btn btn-primary btn-large">Start Learning</a>
+                        <a href="/register" class="btn btn-secondary btn-large">Explore Courses</a>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="isometric-container">
+                    <div class="isometric-scene">
+                        <div class="iso-building school-building">
+                            <div class="building-roof"></div>
+                            <div class="building-body">
+                                <div class="window window-1"></div>
+                                <div class="window window-2"></div>
+                                <div class="door"></div>
+                            </div>
+                        </div>
+                        <div class="iso-building library-building">
+                            <div class="building-roof"></div>
+                            <div class="building-body">
+                                <div class="window window-3"></div>
+                                <div class="window window-4"></div>
+                            </div>
+                        </div>
+                        <div class="iso-landscape">
+                            <div class="ground-tile"></div>
+                            <div class="ground-tile"></div>
+                            <div class="ground-tile"></div>
+                            <div class="tree tree-1">🌳</div>
+                            <div class="tree tree-2">🌲</div>
+                            <div class="cloud cloud-1">☁️</div>
+                            <div class="cloud cloud-2">☁️</div>
+                        </div>
+                        <div class="floating-elements">
+                            <div class="float-element element-1">📚</div>
+                            <div class="float-element element-2">💻</div>
+                            <div class="float-element element-3">🎓</div>
+                            <div class="float-element element-4">📐</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-number">15K+</div>
+                        <div class="stat-label">Active Learners</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">👨‍🏫</div>
+                        <div class="stat-number">800+</div>
+                        <div class="stat-label">Expert Instructors</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-number">99%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
+    <!-- Professional Features Section -->
     <section class="features-section">
         <div class="features-container">
             <div class="feature-card">
-                <div class="feature-icon">�</div>
-                <h3>Rank Your Progress</h3>
+                <div class="feature-icon">📊</div>
+                <h3>Academic Analytics</h3>
+                <p class="feature-desc">Comprehensive tracking of your academic performance with detailed insights and progress visualization.</p>
                 <ul class="feature-list">
-                    <li>Track academic performance</li>
-                    <li>Compare with peers globally</li>
-                    <li>Earn achievement badges</li>
-                    <li>Build scholarly reputation</li>
-                    <li>Advanced analytics dashboard</li>
+                    <li>Real-time grade monitoring</li>
+                    <li>Performance trend analysis</li>
+                    <li>Personalized recommendations</li>
+                    <li>Goal achievement tracking</li>
                 </ul>
             </div>
-            
             <div class="feature-card">
-                <div class="feature-icon">�</div>
-                <h3>Share Knowledge</h3>
+                <div class="feature-icon">📚</div>
+                <h3>Smart Library</h3>
+                <p class="feature-desc">Access curated study materials, lecture notes, and educational resources from top educators.</p>
                 <ul class="feature-list">
-                    <li>Upload study materials</li>
-                    <li>Create collaborative notes</li>
-                    <li>Peer-to-peer learning</li>
-                    <li>Knowledge base access</li>
-                    <li>Resource sharing platform</li>
+                    <li>Organized course materials</li>
+                    <li>Interactive study guides</li>
+                    <li>Collaborative note sharing</li>
+                    <li>AI-powered recommendations</li>
                 </ul>
             </div>
-            
+            <div class="feature-card">
+                <div class="feature-icon">🎥</div>
+                <h3>Virtual Classroom</h3>
+                <p class="feature-desc">Engage in immersive online learning with HD video conferencing and interactive tools.</p>
+                <ul class="feature-list">
+                    <li>HD video conferencing</li>
+                    <li>Interactive whiteboard</li>
+                    <li>Screen sharing & recording</li>
+                    <li>Breakout rooms support</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3>Assessment Platform</h3>
+                <p class="feature-desc">Advanced testing and evaluation system with instant feedback and detailed analytics.</p>
+                <ul class="feature-list">
+                    <li>Automated quiz generation</li>
+                    <li>Instant grading system</li>
+                    <li>Performance analytics</li>
+                    <li>Plagiarism detection</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Student Success</h3>
+                <p class="feature-desc">Comprehensive student management with attendance tracking, progress monitoring, and communication tools.</p>
+                <ul class="feature-list">
+                    <li>Attendance tracking</li>
+                    <li>Progress monitoring</li>
+                    <li>Parent communication</li>
+                    <li>Behavior tracking</li>
+                </ul>
+            </div>
             <div class="feature-card">
                 <div class="feature-icon">🎯</div>
-                <h3>Achieve Goals</h3>
+                <h3>Goal Achievement</h3>
+                <p class="feature-desc">Set, track, and achieve your academic goals with personalized milestone celebrations.</p>
                 <ul class="feature-list">
-                    <li>Set academic targets</li>
-                    <li>Track milestone completion</li>
-                    <li>Personalized learning paths</li>
-                    <li>Smart recommendations</li>
+                    <li>Custom goal setting</li>
                     <li>Progress visualization</li>
+                    <li>Achievement badges</li>
+                    <li>Milestone tracking</li>
                 </ul>
             </div>
         </div>
@@ -113,7 +209,7 @@
             <p>Join thousands of scholars already ranking their way to academic excellence.</p>
             <div class="hero-buttons">
                 <a href="/login" class="btn btn-primary btn-large">Start Your Journey</a>
-                <a href="#" class="btn btn-outline btn-large">Learn More</a>
+                <a href="/register" class="btn btn-outline btn-large">Sign Up Now</a>
             </div>
         </div>
     </section>

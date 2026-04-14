@@ -5,73 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scholar Rank - Login</title>
     <link rel="stylesheet" href="/static/css/scholar-rank.css">
+    <script src="/static/js/theme.js"></script>
 </head>
-<body>
+<body class="login-background">
     <div class="login-container">
-        <div class="login-box">
-            <h1>🎓 Scholar Rank</h1>
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+        <div class="login-box glass">
+            <div class="login-header">
+                <h1> Scholar Rank</h1>
+                <p class="login-tagline">Elevate Your Academic Journey</p>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <span id="theme-icon"></span>
+                </button>
             </div>
             
-            <div class="tab-divider">OR</div>
-            
-            <div class="tabs">
-                <button class="tab-btn" onclick="switchTab('register')">Register</button>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                    <button class="tab-btn" onclick="switchTab('register')">Sign Up</button>
+                </div>
             </div>
-            
-            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-                <span id="theme-icon">🌙</span>
-            </button>
             
             <!-- Login Form -->
             <div id="login-form" class="form-container active">
                 <form id="loginForm">
                     <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" required>
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
                     </div>
                     <div class="form-group">
                         <label for="login-password">Password</label>
-                        <input type="password" id="login-password" required>
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Login</button>
+                    <button type="submit" class="btn btn-primary btn-full">Login</button>
                 </form>
             </div>
             
             <!-- Register Form -->
-            <div class="register-section">
-                <div class="form-container">
-                    <h3 class="form-title">Create Your Account</h3>
-                    <form id="registerForm">
-                        <div class="form-group">
-                            <label for="register-name">Full Name</label>
-                            <input type="text" id="register-name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-email">Email</label>
-                            <input type="email" id="register-email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-password">Password</label>
-                            <input type="password" id="register-password" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-role">Role</label>
-                            <select id="register-role" required>
-                                <option value="student">Student</option>
-                                <option value="teacher">Teacher</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Register</button>
-                    </form>
-                </div>
+            <div id="register-form" class="form-container">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="register-name">Full Name</label>
+                        <input type="text" id="register-name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" placeholder="Create a password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-role">I am a</label>
+                        <select id="register-role" required>
+                            <option value="">Select your role</option>
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                </form>
             </div>
             
             <div id="message" class="message"></div>
         </div>
     </div>
-    <script src="/static/js/theme.js"></script>
     <script src="/static/js/auth.js"></script>
 </body>
 </html>

@@ -1,0 +1,610 @@
+﻿from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File, Form, Request
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from passlib.context import CryptContext
+from pymongo import MongoClient
+from bson import ObjectId
+from datetime import datetime, timedelta
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel
+import os
+import json
+from pathlib import Path
+
+app = FastAPI(title="Classroom Management System", version="2.0.0")
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Static files and templates
+import pathlib
+current_dir = pathlib.Path(__file__).parent.parent.parent
+app.mount("/static", StaticFiles(directory=str(current_dir / "frontend" / "static")), name="static")
+templates = Jinja2Templates(directory=str(current_dir / "frontend" / "templates"))
+
+# Security
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBasic()
+
+# MongoDB connection
+mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+client = None
+db = None
+
+class MockCollection:
+    def __init__(self):
+        self._docs = []
+    def _match(self, doc, query: dict):
+        if not query:
+            return True
+        for k, v in query.items():
+            val = doc.get(k)
+            # handle simple operator dicts
+            if isinstance(v, dict):
+                if '$lte' in v:
+                    if not (val <= v['$lte']):
+                        return False
+                if '$gte' in v:
+                    if not (val >= v['$gte']):
+                        return False
+                # other operators ignored for simplicity
+            else:
+                # compare by string for ObjectId-like values
+                if isinstance(val, (ObjectId,)) or isinstance(v, (ObjectId,)):
+                    if str(val) != str(v):
+                        return False
+                else:
+                    if val != v:
+                        return False
+        return True
+
+    class MockCursor:
+        def __init__(self, docs):
+            self.docs = list(docs)
+
+        def sort(self, key, direction=-1):
+            # key can be a string or a list/tuple
+            if isinstance(key, (list, tuple)):
+                k = key[0]
+                dir = key[1]
+            else:
+                k = key
+                dir = direction
+            self.docs.sort(key=lambda d: d.get(k), reverse=(dir == -1))
+            return self
+
+        def limit(self, n):
+            self.docs = self.docs[:n]
+            return self
+
+        def __iter__(self):
+            return iter(self.docs)
+
+        def __len__(self):
+            return len(self.docs)
+
+        def __repr__(self):
+            return repr(self.docs)
+
+    def find(self, query: dict = None, projection: dict = None):
+        # return a cursor-like object supporting sort and limit
+        matched = [d for d in self._docs if self._match(d, query or {})]
+        return MockCollection.MockCursor(matched)
+
+    def find_one(self, query: dict = None, projection: dict = None, sort=None):
+        # support sort param like [('created_at', -1)]
+        cursor = self.find(query, projection)
+        if sort:
+            cursor = cursor.sort(sort)
+        for d in cursor:
+            return d
+        return None
+
+    def insert_one(self, doc):
+        # emulate ObjectId by using an incrementing integer id
+        new = dict(doc)
+        new['_id'] = str(len(self._docs) + 1)
+        self._docs.append(new)
+        return type('R', (), {'inserted_id': new['_id']})
+
+    def delete_one(self, query):
+        _id = query.get('_id')
+        for i, d in enumerate(self._docs):
+            if d.get('_id') == _id or str(d.get('_id')) == str(_id):
+                del self._docs[i]
+                return
+
+    def delete_many(self, query):
+        self._docs = []
+
+    def update_one(self, query, update, upsert=False):
+        # naive: replace or upsert
+        _id = query.get('student_id') or query.get('_id')
+        for i, d in enumerate(self._docs):
+            if d.get('student_id') == _id or d.get('_id') == _id:
+                d.update(update.get('$set', {}))
+                return
+        if upsert:
+            new = update.get('$set', {})
+            if _id:
+                new_key = 'student_id' if 'student_id' in query else '_id'
+                new[new_key] = _id
+            self.insert_one(new)
+
+class MockDB:
+    def __init__(self):
+        self.users = MockCollection()
+        self.notes = MockCollection()
+        self.student_records = MockCollection()
+        self.notices = MockCollection()
+        self.zoom_links = MockCollection()
+        self.tests = MockCollection()
+        self.test_submissions = MockCollection()
+
+try:
+    client = MongoClient(mongo_uri, serverSelectionTimeoutMS=3000)
+    client.server_info()
+    db = client['classroom_db']
+    print("✓ MongoDB connected successfully")
+except Exception as e:
+    print(f"⚠ MongoDB connection warning: {e}")
+    print("Application will start but database features will be limited")
+    db = MockDB()
+
+# Ensure upload directory exists (absolute path relative to project root)
+UPLOAD_FOLDER = str(current_dir / "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Session management (simplified for FastAPI)
+class SessionManager:
+    def __init__(self):
+        self.sessions = {}
+    
+    def create_session(self, user_id: str, role: str):
+        session_id = os.urandom(24).hex()
+        self.sessions[session_id] = {
+            'user_id': user_id,
+            'role': role,
+            'created_at': datetime.utcnow()
+        }
+        return session_id
+    
+    def get_session(self, session_id: str):
+        return self.sessions.get(session_id)
+    
+    def delete_session(self, session_id: str):
+        if session_id in self.sessions:
+            del self.sessions[session_id]
+
+session_manager = SessionManager()
+
+# Helper functions
+def get_current_user(request: Request):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return None
+    return session_manager.get_session(session_id)
+
+def require_role(required_role: str):
+    def dependency(request: Request):
+        current_user = get_current_user(request)
+        if not current_user or current_user.get('role') != required_role:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        return current_user
+    return dependency
+
+def require_auth():
+    def dependency(request: Request):
+        current_user = get_current_user(request)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        return current_user
+    return dependency
+
+def convert_objectid(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_objectid(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_objectid(item) for item in obj]
+    return obj
+
+# Pydantic models
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    name: str
+    role: str = "student"
+
+class Notice(BaseModel):
+    title: str
+    content: str
+
+class ZoomLink(BaseModel):
+    url: str
+    meeting_id: Optional[str] = ""
+    password: Optional[str] = ""
+    scheduled_time: Optional[str] = None
+
+class Test(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    questions: List[Dict[str, Any]]
+    start_time: str
+    end_time: str
+
+class StudentRecord(BaseModel):
+    attendance: Optional[List[str]] = []
+    test_scores: Optional[List[Dict[str, Any]]] = []
+    notes: Optional[str] = ""
+
+class TestSubmission(BaseModel):
+    answers: Dict[str, Any]
+
+# Routes
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    current_user = get_current_user(request)
+    if current_user:
+        if current_user['role'] == 'teacher':
+            return RedirectResponse(url="/teacher/dashboard", status_code=302)
+        else:
+            return RedirectResponse(url="/student/dashboard", status_code=302)
+    return RedirectResponse(url="/login", status_code=302)
+
+@app.get("/home", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login_page.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register_page.html", {"request": request})
+
+@app.post("/api/login")
+async def login(request: Request, user_data: UserLogin):
+    try:
+        # For now, just check if email exists (mock validation)
+        user = {'email': user_data.email, 'role': 'teacher' if user_data.email == 'teacher@scholarrank.com' else 'student'}
+
+        if user:
+            session_id = session_manager.create_session('mock_user_id', user['role'])
+            resp = JSONResponse({"success": True, "role": user['role']})
+            # set cookie for session (HttpOnly)
+            resp.set_cookie("session_id", session_id, httponly=True, samesite="lax")
+            return resp
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.post("/api/register")
+async def register(user_data: UserRegister):
+    try:
+        # Simple mock registration - just accept any registration
+        session_id = session_manager.create_session('mock_user_id', user_data.role)
+        resp = JSONResponse({"success": True, "role": user_data.role})
+        resp.set_cookie("session_id", session_id, httponly=True, samesite="lax")
+        return resp
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.get("/logout")
+async def logout(request: Request):
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        session_manager.delete_session(session_id)
+    return RedirectResponse(url="/login", status_code=302)
+
+# Teacher Routes
+@app.get("/teacher/dashboard", response_class=HTMLResponse)
+async def teacher_dashboard(request: Request):
+    current_user = require_role("teacher")(request)
+    return templates.TemplateResponse("teacher_dashboard.html", {"request": request})
+
+@app.get("/api/teacher/students")
+async def get_students(current_user: dict = Depends(require_role("teacher"))):
+    students = list(db.users.find({'role': 'student'}, {'password': 0}))
+    for student in students:
+        student['_id'] = str(student['_id'])
+        records = db.student_records.find_one({'student_id': student['_id']})
+        student['records'] = records if records else {}
+    return convert_objectid(students)
+
+@app.post("/api/teacher/notes")
+async def upload_note(
+    request: Request,
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    description: str = Form(""),
+    subject: str = Form("General"),
+    current_user: dict = Depends(require_role("teacher"))
+):
+    try:
+        filename = file.filename
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        
+        with open(filepath, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        note = {
+            'title': title,
+            'description': description,
+            'subject': subject,
+            'filename': filename,
+            'filepath': filepath,
+            'uploaded_by': current_user['user_id'],
+            'uploaded_at': datetime.utcnow()
+        }
+        
+        db.notes.insert_one(note)
+        return {"success": True, "message": "Note uploaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.get("/api/teacher/notes")
+async def get_notes(current_user: dict = Depends(require_role("teacher"))):
+    notes = list(db.notes.find().sort('uploaded_at', -1))
+    for note in notes:
+        note['_id'] = str(note['_id'])
+        note['uploaded_at'] = note['uploaded_at'].isoformat()
+    return convert_objectid(notes)
+
+@app.delete("/api/teacher/notes/{note_id}")
+async def delete_note(note_id: str, current_user: dict = Depends(require_role("teacher"))):
+    try:
+        # try converting to ObjectId for real MongoDB, but fall back to string id for mock DB
+        try:
+            query_id = ObjectId(note_id)
+        except Exception:
+            query_id = note_id
+        note = db.notes.find_one({'_id': query_id})
+        if note:
+            if os.path.exists(note['filepath']):
+                os.remove(note['filepath'])
+            # delete by the same id type we used to find
+            try:
+                db.notes.delete_one({'_id': ObjectId(note_id)})
+            except Exception:
+                db.notes.delete_one({'_id': note_id})
+            return {"success": True}
+        raise HTTPException(status_code=404, detail="Note not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.post("/api/teacher/notices")
+async def create_notice(notice: Notice, current_user: dict = Depends(require_role("teacher"))):
+    notice_data = {
+        'title': notice.title,
+        'content': notice.content,
+        'posted_by': current_user['user_id'],
+        'posted_at': datetime.utcnow()
+    }
+    db.notices.insert_one(notice_data)
+    return {"success": True}
+
+@app.get("/api/teacher/notices")
+async def get_notices(current_user: dict = Depends(require_role("teacher"))):
+    notices = list(db.notices.find().sort('posted_at', -1).limit(10))
+    for notice in notices:
+        notice['_id'] = str(notice['_id'])
+        notice['posted_at'] = notice['posted_at'].isoformat()
+    return convert_objectid(notices)
+
+@app.post("/api/teacher/zoom-link")
+async def create_zoom_link(zoom_data: ZoomLink, current_user: dict = Depends(require_role("teacher"))):
+    zoom_link = {
+        'url': zoom_data.url,
+        'meeting_id': zoom_data.meeting_id,
+        'password': zoom_data.password,
+        'scheduled_time': zoom_data.scheduled_time,
+        'created_by': current_user['user_id'],
+        'created_at': datetime.utcnow()
+    }
+    db.zoom_links.delete_many({})
+    db.zoom_links.insert_one(zoom_link)
+    return {"success": True}
+
+@app.get("/api/teacher/zoom-link")
+async def get_zoom_link(current_user: dict = Depends(require_role("teacher"))):
+    zoom_link = db.zoom_links.find_one(sort=[('created_at', -1)])
+    if zoom_link:
+        zoom_link['_id'] = str(zoom_link['_id'])
+        zoom_link['created_at'] = zoom_link['created_at'].isoformat()
+    return convert_objectid(zoom_link) if zoom_link else {}
+
+@app.post("/api/teacher/tests")
+async def create_test(test_data: Test, current_user: dict = Depends(require_role("teacher"))):
+    try:
+        test = {
+            'title': test_data.title,
+            'description': test_data.description,
+            'questions': test_data.questions,
+            'start_time': datetime.fromisoformat(test_data.start_time),
+            'end_time': datetime.fromisoformat(test_data.end_time),
+            'created_by': current_user['user_id'],
+            'created_at': datetime.utcnow()
+        }
+        db.tests.insert_one(test)
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.get("/api/teacher/tests")
+async def get_tests(current_user: dict = Depends(require_role("teacher"))):
+    tests = list(db.tests.find().sort('created_at', -1))
+    for test in tests:
+        test['_id'] = str(test['_id'])
+        test['start_time'] = test['start_time'].isoformat()
+        test['end_time'] = test['end_time'].isoformat()
+        test['created_at'] = test['created_at'].isoformat()
+    return convert_objectid(tests)
+
+@app.get("/api/teacher/tests/{test_id}/results")
+async def get_test_results(test_id: str, current_user: dict = Depends(require_role("teacher"))):
+    submissions = list(db.test_submissions.find({'test_id': test_id}))
+    for submission in submissions:
+        submission['_id'] = str(submission['_id'])
+        submission['submitted_at'] = submission['submitted_at'].isoformat()
+    return convert_objectid(submissions)
+
+@app.post("/api/teacher/student-records/{student_id}")
+async def update_student_records(student_id: str, record: StudentRecord, current_user: dict = Depends(require_role("teacher"))):
+    record_data = {
+        'student_id': student_id,
+        'attendance': record.attendance,
+        'test_scores': record.test_scores,
+        'notes': record.notes,
+        'updated_by': current_user['user_id'],
+        'updated_at': datetime.utcnow()
+    }
+    db.student_records.update_one(
+        {'student_id': student_id},
+        {'$set': record_data},
+        upsert=True
+    )
+    return {"success": True}
+
+@app.get("/api/teacher/student-records/{student_id}")
+async def get_student_records(student_id: str, current_user: dict = Depends(require_role("teacher"))):
+    record = db.student_records.find_one({'student_id': student_id})
+    if record:
+        record['_id'] = str(record['_id'])
+        record['updated_at'] = record['updated_at'].isoformat()
+    return convert_objectid(record) if record else {}
+
+# Student Routes
+@app.get("/student/dashboard", response_class=HTMLResponse)
+async def student_dashboard(request: Request):
+    current_user = require_role("student")(request)
+    return templates.TemplateResponse("student_dashboard.html", {"request": request})
+
+@app.get("/api/student/notes")
+async def get_student_notes(current_user: dict = Depends(require_role("student"))):
+    notes = list(db.notes.find().sort('uploaded_at', -1))
+    for note in notes:
+        note['_id'] = str(note['_id'])
+        note['uploaded_at'] = note['uploaded_at'].isoformat()
+    return convert_objectid(notes)
+
+@app.get("/api/student/download/{filename}")
+async def download_note(filename: str, current_user: dict = Depends(require_auth())):
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename=filename)
+    raise HTTPException(status_code=404, detail="File not found")
+
+@app.get("/api/student/records")
+async def get_student_records_student(current_user: dict = Depends(require_role("student"))):
+    student_id = current_user['user_id']
+    record = db.student_records.find_one({'student_id': student_id})
+    if record:
+        record['_id'] = str(record['_id'])
+        record['updated_at'] = record['updated_at'].isoformat()
+    return convert_objectid(record) if record else {}
+
+@app.get("/api/student/notices")
+async def get_student_notices(current_user: dict = Depends(require_auth())):
+    notices = list(db.notices.find().sort('posted_at', -1).limit(10))
+    for notice in notices:
+        notice['_id'] = str(notice['_id'])
+        notice['posted_at'] = notice['posted_at'].isoformat()
+    return convert_objectid(notices)
+
+@app.get("/api/student/zoom-link")
+async def get_student_zoom_link(current_user: dict = Depends(require_auth())):
+    zoom_link = db.zoom_links.find_one(sort=[('created_at', -1)])
+    if zoom_link:
+        zoom_link['_id'] = str(zoom_link['_id'])
+        zoom_link['created_at'] = zoom_link['created_at'].isoformat()
+    return convert_objectid(zoom_link) if zoom_link else {}
+
+@app.get("/api/student/tests")
+async def get_active_tests(current_user: dict = Depends(require_role("student"))):
+    now = datetime.utcnow()
+    tests = list(db.tests.find({
+        'start_time': {'$lte': now},
+        'end_time': {'$gte': now}
+    }).sort('created_at', -1))
+    
+    student_id = current_user['user_id']
+    for test in tests:
+        test['_id'] = str(test['_id'])
+        test['start_time'] = test['start_time'].isoformat()
+        test['end_time'] = test['end_time'].isoformat()
+        submission = db.test_submissions.find_one({
+            'test_id': str(test['_id']),
+            'student_id': student_id
+        })
+        test['submitted'] = submission is not None
+        if submission:
+            test['score'] = submission.get('score', 0)
+    
+    return convert_objectid(tests)
+
+@app.post("/api/student/tests/{test_id}/submit")
+async def submit_test(test_id: str, submission: TestSubmission, current_user: dict = Depends(require_role("student"))):
+    try:
+        test = db.tests.find_one({'_id': ObjectId(test_id)})
+        if not test:
+            raise HTTPException(status_code=404, detail="Test not found")
+        
+        now = datetime.utcnow()
+        if now < test['start_time'] or now > test['end_time']:
+            raise HTTPException(status_code=400, detail="Test is not active")
+        
+        # Calculate score
+        score = 0
+        total = len(test['questions'])
+        for i, question in enumerate(test['questions']):
+            if str(i) in submission.answers and submission.answers[str(i)] == question.get('correct_answer'):
+                score += 1
+        
+        submission_data = {
+            'test_id': test_id,
+            'student_id': current_user['user_id'],
+            'answers': submission.answers,
+            'score': score,
+            'total': total,
+            'submitted_at': datetime.utcnow()
+        }
+        
+        db.test_submissions.insert_one(submission_data)
+        return {"success": True, "score": score, "total": total}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    print("\n" + "="*50)
+    print("Starting FastAPI Classroom Management System...")
+    print("="*50)
+    print(f"MongoDB URI: {mongo_uri}")
+    print(f"Upload folder: {UPLOAD_FOLDER}")
+    print("="*50)
+    print("\n✓ Server starting on http://localhost:8000")
+    print("✓ API docs available at http://localhost:8000/docs")
+    print("✓ Press Ctrl+C to stop\n")
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
