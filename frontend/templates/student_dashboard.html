@@ -6,115 +6,229 @@
     <title>Student Dashboard - Scholar Rank</title>
     <link rel="stylesheet" href="/static/css/scholar-rank.css">
 </head>
-    <script src="/static/js/theme.js"></script>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="header-left">
-                <h2>Scholar Rank</h2>
-                <div class="nav-links">
-                    <a href="/home" class="nav-link">🏠 Home</a>
-                    <a href="/student/dashboard" class="nav-link">📊 Dashboard</a>
-                    <a href="/student/dashboard?section=notes" class="nav-link">📝 Notes</a>
-                    <a href="/student/dashboard?section=tests" class="nav-link">📝 Tests</a>
+    <header class="main-header">
+        <div class="container header-content">
+            <a href="/" class="brand">🎓 Scholar Rank</a>
+            <div class="nav-links">
+                <span id="userName" style="font-weight: 600; color: var(--primary);">Student</span>
+                <a href="/logout" class="btn btn-outline" style="padding: 0.4rem 1rem;">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar: Teacher Directory -->
+        <aside class="sidebar glass-panel">
+            <h3>Directory</h3>
+            <p class="item-meta" style="margin-bottom: 1rem;">Select a teacher to view their content.</p>
+            <ul class="teacher-list" id="teacherList">
+                <li class="teacher-item active" onclick="selectTeacher(null, this)">
+                    <div class="teacher-avatar">A</div>
+                    All Teachers
+                </li>
+                <!-- Teachers populated here -->
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <div class="glass-panel card">
+                <div class="card-header">
+                    <h2>📚 Course Materials</h2>
+                </div>
+                <ul class="item-list" id="notesList">
+                    <p class="item-meta">Loading materials...</p>
+                </ul>
+            </div>
+
+            <div class="glass-panel card">
+                <div class="card-header">
+                    <h2>📌 Notice Board</h2>
+                </div>
+                <ul class="item-list" id="noticesList">
+                    <p class="item-meta">Loading notices...</p>
+                </ul>
+            </div>
+
+            <div class="glass-panel card">
+                <div class="card-header">
+                    <h2>🎥 Zoom Classes</h2>
+                </div>
+                <div id="zoomContent" class="list-item">
+                    <p class="item-meta">Loading zoom links...</p>
                 </div>
             </div>
-            <div class="header-right">
-                <div class="user-info">
-                    <span id="user-name" class="user-name">Student</span>
-                    <div class="user-avatar">👨‍🎓</div>
+
+            <div class="glass-panel card">
+                <div class="card-header">
+                    <h2>📝 Active Tests</h2>
                 </div>
-                <div class="header-actions">
-                    <a href="/logout" class="btn btn-secondary btn-small">Logout</a>
-                </div>
+                <ul class="item-list" id="testsList">
+                    <p class="item-meta">Loading tests...</p>
+                </ul>
             </div>
-        </div>
-    </nav>
-    
-    <div class="container">
-        <!-- Teacher Selection Section -->
-        <div class="teacher-selection">
-            <div class="card">
-                <h3>👨‍🏫 Select Teacher</h3>
-                <div class="teacher-list" id="teacher-list">
-                    <div class="loading">Loading teachers...</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="tabs-nav">
-            <button class="tab-btn active" onclick="showSection('notes')">📝 Notes</button>
-            <button class="tab-btn" onclick="showSection('records')">👥 My Records</button>
-            <button class="tab-btn" onclick="showSection('notices')">📢 Notices</button>
-            <button class="tab-btn" onclick="showSection('zoom')">🎥 Zoom Class</button>
-            <button class="tab-btn" onclick="showSection('tests')">Tests</button>
-        </div>
-        
-        <!-- Debug Info -->
-        <div style="background: #f0f0f0; color: white; padding: 10px; margin: 10px; border-radius: 5px; font-family: monospace;">
-            <div>DEBUG INFO:</div>
-            <div id="debug-info">Loading...</div>
-            <div>Selected Teacher: <span id="debug-teacher">None</span></div>
-            <div>Function Status: <span id="debug-status">Checking...</span></div>
-        </div>
-        
-        <!-- Notes Section -->
-        <div id="notes-section" class="dashboard-section active">
-            <div class="card">
-                <h2>Course Notes</h2>
-                <div id="notes-list" class="notes-list"></div>
-            </div>
-        </div>
-        
-        <!-- Records Section -->
-        <div id="records-section" class="dashboard-section">
-            <div class="card">
-                <h2>My Records</h2>
-                <div id="records-display">
-                    <div id="records-content"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Notices Section -->
-        <div id="notices-section" class="dashboard-section">
-            <div class="card">
-                <h2>Notice Board</h2>
-                <div id="notices-list" class="notices-list"></div>
-            </div>
-        </div>
-        
-        <!-- Zoom Class Section -->
-        <div id="zoom-section" class="dashboard-section">
-            <div class="card">
-                <h2>Virtual Classroom</h2>
-                <div id="zoom-display">
-                    <div id="zoom-content"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Tests Section -->
-        <div id="tests-section" class="dashboard-section">
-            <div class="card">
-                <h2>Available Tests</h2>
-                <div id="tests-list" class="tests-list"></div>
-            </div>
-        </div>
+        </main>
     </div>
-    
-    <!-- Test Modal -->
-    <div id="test-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeTestModal()">&times;</span>
-            <h2 id="test-modal-title"></h2>
-            <div id="test-modal-content"></div>
-            <button id="submit-test-btn" class="btn btn-primary" onclick="submitTest()">Submit Test</button>
-        </div>
-    </div>
-    
-    <script src="/static/js/student.js"></script>
+
+    <script>
+        let currentTeacherId = null;
+
+        async function init() {
+            await loadTeachers();
+            await loadDashboardData();
+        }
+
+        async function loadTeachers() {
+            try {
+                const res = await fetch('/api/student/teachers');
+                const teachers = await res.json();
+                const list = document.getElementById('teacherList');
+                
+                // Keep the 'All Teachers' default
+                let html = `<li class="teacher-item active" onclick="selectTeacher(null, this)">
+                    <div class="teacher-avatar">A</div>All Teachers
+                </li>`;
+
+                teachers.forEach(t => {
+                    const initial = t.name ? t.name.charAt(0).toUpperCase() : '?';
+                    const displayName = t.name || t.email;
+                    html += `
+                    <li class="teacher-item" onclick="selectTeacher('${t._id}', this)">
+                        <div class="teacher-avatar">${initial}</div>
+                        ${displayName}
+                    </li>`;
+                });
+                
+                list.innerHTML = html;
+            } catch (e) {
+                console.error("Failed to load teachers", e);
+            }
+        }
+
+        function selectTeacher(teacherId, element) {
+            // Update active state
+            document.querySelectorAll('.teacher-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            
+            currentTeacherId = teacherId;
+            loadDashboardData();
+        }
+
+        async function loadDashboardData() {
+            const query = currentTeacherId ? `?teacher=${currentTeacherId}` : '';
+            
+            // Fetch Notes
+            fetch(`/api/student/notes${query}`).then(r => r.json()).then(data => {
+                const list = document.getElementById('notesList');
+                if (data.length === 0) { list.innerHTML = '<p class="item-meta">No materials available.</p>'; return; }
+                list.innerHTML = data.map(n => `
+                    <li class="list-item">
+                        <h4>${n.title} <span class="badge badge-success" style="float: right;">${n.subject}</span></h4>
+                        <p class="item-meta">${n.description}</p>
+                        <a href="/api/student/download/${n.filename}" class="btn btn-outline" style="margin-top: 1rem;">Download File</a>
+                    </li>
+                `).join('');
+            });
+
+            // Fetch Notices
+            fetch(`/api/student/notices${query}`).then(r => r.json()).then(data => {
+                const list = document.getElementById('noticesList');
+                if (data.length === 0) { list.innerHTML = '<p class="item-meta">No notices posted.</p>'; return; }
+                list.innerHTML = data.map(n => `
+                    <li class="list-item">
+                        <h4>${n.title}</h4>
+                        <p style="margin-top: 0.5rem">${n.content}</p>
+                        <p class="item-meta">Posted: ${new Date(n.posted_at).toLocaleDateString()}</p>
+                    </li>
+                `).join('');
+            });
+
+            // Fetch Zoom
+            fetch(`/api/student/zoom-link${query}`).then(r => r.json()).then(data => {
+                const container = document.getElementById('zoomContent');
+                if (!data.url) { container.innerHTML = '<p class="item-meta">No active zoom class scheduled.</p>'; return; }
+                container.innerHTML = `
+                    <h4>Scheduled Class</h4>
+                    <p class="item-meta">Time: ${new Date(data.scheduled_time || data.created_at).toLocaleString()}</p>
+                    <p><strong>Meeting ID:</strong> ${data.meeting_id || 'N/A'}</p>
+                    <p><strong>Password:</strong> ${data.password || 'N/A'}</p>
+                    <a href="${data.url}" target="_blank" class="btn btn-primary" style="margin-top: 1rem;">Join Meeting</a>
+                `;
+            });
+
+            // Fetch Tests
+            fetch(`/api/student/tests${query}`).then(r => r.json()).then(data => {
+                const list = document.getElementById('testsList');
+                if (data.length === 0) { list.innerHTML = '<p class="item-meta">No active tests available.</p>'; return; }
+                list.innerHTML = data.map(t => `
+                    <li class="list-item ${t.submitted ? 'test-card' : 'test-card active'}">
+                        <h4>${t.title} <span class="badge ${t.submitted ? 'badge-warning' : 'badge-success'}" style="float: right;">${t.submitted ? 'Completed: Score ' + t.score : 'Active'}</span></h4>
+                        <p class="item-meta">${t.description}</p>
+                        <p class="item-meta">Ends: ${new Date(t.end_time).toLocaleString()}</p>
+                        ${!t.submitted ? `<button class="btn btn-primary" style="margin-top: 1rem;" onclick="takeTest('${t._id}')">Take Test</button>` : ''}
+                        <div id="test-container-${t._id}" style="display:none; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;"></div>
+                    </li>
+                `).join('');
+                
+                window.activeTests = data;
+            });
+        }
+
+        function takeTest(testId) {
+            const test = window.activeTests.find(t => t._id === testId);
+            const container = document.getElementById(`test-container-${testId}`);
+            
+            let html = `<form onsubmit="submitTest(event, '${testId}')">`;
+            test.questions.forEach((q, i) => {
+                html += `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.02); border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <p style="font-weight: 600; margin: 0;">${i+1}. ${q.question}</p>
+                            <span class="badge badge-success" style="font-size: 0.75rem;">${q.marks || 1} Marks</span>
+                        </div>
+                        ${q.options.map((opt, optIdx) => `
+                            <div>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.3rem;">
+                                    <input type="radio" name="q${i}" value="${optIdx}" required>
+                                    ${opt}
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            html += `<button type="submit" class="btn btn-secondary" style="background: var(--secondary); color: white;">Submit Answers</button></form>`;
+            container.innerHTML = html;
+            container.style.display = 'block';
+        }
+
+        async function submitTest(e, testId) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const answers = {};
+            for (let [key, value] of formData.entries()) {
+                answers[key.replace('q', '')] = parseInt(value);
+            }
+            
+            const res = await fetch(`/api/student/tests/${testId}/submit`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ answers })
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                alert(`Test submitted! Your score: ${data.score}/${data.total}`);
+                loadDashboardData();
+            } else {
+                const err = await res.json();
+                alert(err.detail || 'Failed to submit test.');
+            }
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
-
-

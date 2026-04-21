@@ -5,42 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Scholar Rank</title>
     <link rel="stylesheet" href="/static/css/scholar-rank.css">
-    <script src="/static/js/theme.js"></script>
 </head>
-<body class="login-background">
-    <div class="bg-blob" aria-hidden="true"></div>
-    <div class="login-container">
-        <div class="login-box glass">
-            <div class="login-header">
-                <h1> Scholar Rank</h1>
-                <p class="login-tagline">Welcome Back to Your Academic Journey</p>
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-                    <span id="theme-icon">🌙</span>
-                </button>
+<body>
+    <header class="main-header">
+        <div class="container header-content">
+            <a href="/" class="brand">🎓 Scholar Rank</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/register" class="btn btn-primary">Sign Up</a>
             </div>
-            
-            <!-- Login Form -->
-            <div class="form-container">
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="login-email">Email Address</label>
-                        <input type="email" id="login-email" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" placeholder="Enter your password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Login</button>
-                </form>
-                
-                <div class="auth-footer">
-                    <p>Don't have an account? <a href="/register" class="auth-link">Sign Up</a></p>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <div class="glass-panel auth-card">
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <p class="item-meta">Log in to continue your learning journey.</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-control" required placeholder="name@example.com">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" required placeholder="••••••••">
+                </div>
+                <div id="errorMessage" style="color: #EF4444; margin-bottom: 1rem; font-size: 0.9rem; display: none;"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%">Sign In</button>
+            </form>
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                Don't have an account? <a href="/register" style="color: var(--primary); text-decoration: none; font-weight: 500;">Register here</a>
             </div>
-            
-            <div id="message" class="message"></div>
         </div>
     </div>
-    <script src="/static/js/login-auth.js"></script>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = data.role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard';
+                } else {
+                    const data = await response.json();
+                    errorMsg.textContent = data.detail || 'Login failed. Please check your credentials.';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'A network error occurred.';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

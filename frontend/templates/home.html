@@ -3,226 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Scholar Rank</title>
+    <title>Scholar Rank - Next-Gen Education Platform</title>
     <link rel="stylesheet" href="/static/css/scholar-rank.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
-    <script src="/static/js/theme.js"></script>
-    <script src="/static/js/auth.js"></script>
+    <style>
+        /* Specific Hero & Landing Page Styles */
+        .landing-hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 50%;
+            height: 50%;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.2) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+
+        .landing-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            right: -10%;
+            width: 50%;
+            height: 50%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeUp 1s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2.5rem auto;
+            animation: fadeUp 1s ease-out 0.2s forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            animation: fadeUp 1s ease-out 0.4s forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .hero-btn {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 99px;
+            font-weight: 600;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            padding: 2.5rem;
+            text-align: left;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            padding: 1rem;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 16px;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dashboard-preview {
+            margin-top: 4rem;
+            width: 100%;
+            max-width: 900px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            animation: fadeUp 1s ease-out 0.6s forwards;
+            opacity: 0;
+            transform: translateY(40px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-content {
+            text-align: center;
+            color: var(--text-muted);
+        }
+        
+        /* Floating abstract shapes for dashboard preview */
+        .shape {
+            position: absolute;
+            background: linear-gradient(135deg, var(--primary), #10B981);
+            border-radius: 50%;
+            opacity: 0.1;
+            filter: blur(20px);
+        }
+        .shape-1 { width: 200px; height: 200px; top: -50px; left: -50px; }
+        .shape-2 { width: 300px; height: 300px; bottom: -100px; right: -50px; }
+    </style>
 </head>
-<body class="home-background">
-    <!-- Professional Header -->
-    <header class="main-header">
-        <div class="header-container">
-            <div class="header-left">
-                <div class="brand-section">
-                    <h1 class="brand-logo">Scholar Rank</h1>
-                    <p class="brand-tagline">Professional Academic Excellence</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <nav class="header-nav">
-                    <a href="/home" class="nav-link active">Home</a>
-                    <a href="/login" class="nav-link">Login</a>
-                    <a href="/register" class="nav-link">Get Started</a>
-                </nav>
+<body>
+    <!-- Modern Header -->
+    <header class="main-header" style="position: sticky; top: 0; z-index: 100; background: rgba(243, 244, 246, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.3);">
+        <div class="container header-content">
+            <a href="/" class="brand" style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+                <span style="color: var(--primary)">Scholar</span>Rank
+            </a>
+            <div class="nav-links">
+                <a href="/login" style="font-weight: 600; color: var(--text-main);">Sign In</a>
+                <a href="/register" class="btn btn-primary" style="border-radius: 99px;">Get Started Free</a>
             </div>
         </div>
     </header>
 
-    <!-- Isometric Learning Hero Section -->
-    <section class="hero-section isometric-hero">
-        <div class="hero-content">
-            <div class="hero-left">
-                <div class="hero-badge">
-                    <span class="badge-icon">🚀</span>
-                    <span class="badge-text">Next-Gen Learning</span>
-                </div>
-                <div class="hero-text">
-                    <h1>Learn Without Limits</h1>
-                    <p>Experience the future of education with our interactive online learning platform. Connect with expert teachers, access quality courses, and achieve your academic goals from anywhere in the world.</p>
-                    <div class="hero-actions">
-                        <a href="/login" class="btn btn-primary btn-large">Start Learning</a>
-                        <a href="/register" class="btn btn-secondary btn-large">Explore Courses</a>
-                    </div>
-                </div>
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="container" style="display: flex; flex-direction: column; align-items: center;">
+            <h1 class="hero-title">Unlock Your Academic Potential</h1>
+            <p class="hero-subtitle">
+                The modern, unified platform for students and teachers. Share materials, host Zoom classes, take online tests, and track your success—all in one beautiful place.
+            </p>
+            <div class="hero-cta">
+                <a href="/register" class="btn btn-primary hero-btn">Start Learning Today</a>
+                <a href="/login" class="btn btn-outline hero-btn" style="border-radius: 99px;">View Demo</a>
             </div>
-            <div class="hero-right">
-                <div class="isometric-container">
-                    <div class="isometric-scene">
-                        <div class="iso-building school-building">
-                            <div class="building-roof"></div>
-                            <div class="building-body">
-                                <div class="window window-1"></div>
-                                <div class="window window-2"></div>
-                                <div class="door"></div>
-                            </div>
-                        </div>
-                        <div class="iso-building library-building">
-                            <div class="building-roof"></div>
-                            <div class="building-body">
-                                <div class="window window-3"></div>
-                                <div class="window window-4"></div>
-                            </div>
-                        </div>
-                        <div class="iso-landscape">
-                            <div class="ground-tile"></div>
-                            <div class="ground-tile"></div>
-                            <div class="ground-tile"></div>
-                            <div class="tree tree-1">🌳</div>
-                            <div class="tree tree-2">🌲</div>
-                            <div class="cloud cloud-1">☁️</div>
-                            <div class="cloud cloud-2">☁️</div>
-                        </div>
-                        <div class="floating-elements">
-                            <div class="float-element element-1">📚</div>
-                            <div class="float-element element-2">💻</div>
-                            <div class="float-element element-3">🎓</div>
-                            <div class="float-element element-4">📐</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-number">15K+</div>
-                        <div class="stat-label">Active Learners</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon">👨‍🏫</div>
-                        <div class="stat-number">800+</div>
-                        <div class="stat-label">Expert Instructors</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-number">99%</div>
-                        <div class="stat-label">Success Rate</div>
-                    </div>
+
+            <!-- Abstract Dashboard Preview Window -->
+            <div class="dashboard-preview glass-panel">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="preview-content">
+                    <span style="font-size: 3rem;">🎓</span>
+                    <h3 style="margin-top: 1rem; color: var(--text-main);">Experience the Premium Dashboard</h3>
+                    <p>Join thousands of scholars and educators globally.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Professional Features Section -->
-    <section class="features-section">
-        <div class="features-container">
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Academic Analytics</h3>
-                <p class="feature-desc">Comprehensive tracking of your academic performance with detailed insights and progress visualization.</p>
-                <ul class="feature-list">
-                    <li>Real-time grade monitoring</li>
-                    <li>Performance trend analysis</li>
-                    <li>Personalized recommendations</li>
-                    <li>Goal achievement tracking</li>
-                </ul>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📚</div>
-                <h3>Smart Library</h3>
-                <p class="feature-desc">Access curated study materials, lecture notes, and educational resources from top educators.</p>
-                <ul class="feature-list">
-                    <li>Organized course materials</li>
-                    <li>Interactive study guides</li>
-                    <li>Collaborative note sharing</li>
-                    <li>AI-powered recommendations</li>
-                </ul>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎥</div>
-                <h3>Virtual Classroom</h3>
-                <p class="feature-desc">Engage in immersive online learning with HD video conferencing and interactive tools.</p>
-                <ul class="feature-list">
-                    <li>HD video conferencing</li>
-                    <li>Interactive whiteboard</li>
-                    <li>Screen sharing & recording</li>
-                    <li>Breakout rooms support</li>
-                </ul>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📝</div>
-                <h3>Assessment Platform</h3>
-                <p class="feature-desc">Advanced testing and evaluation system with instant feedback and detailed analytics.</p>
-                <ul class="feature-list">
-                    <li>Automated quiz generation</li>
-                    <li>Instant grading system</li>
-                    <li>Performance analytics</li>
-                    <li>Plagiarism detection</li>
-                </ul>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">👥</div>
-                <h3>Student Success</h3>
-                <p class="feature-desc">Comprehensive student management with attendance tracking, progress monitoring, and communication tools.</p>
-                <ul class="feature-list">
-                    <li>Attendance tracking</li>
-                    <li>Progress monitoring</li>
-                    <li>Parent communication</li>
-                    <li>Behavior tracking</li>
-                </ul>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Goal Achievement</h3>
-                <p class="feature-desc">Set, track, and achieve your academic goals with personalized milestone celebrations.</p>
-                <ul class="feature-list">
-                    <li>Custom goal setting</li>
-                    <li>Progress visualization</li>
-                    <li>Achievement badges</li>
-                    <li>Milestone tracking</li>
-                </ul>
-            </div>
-        </div>
-    </section>
+    <!-- Features Section -->
+    <section style="background: white; position: relative; z-index: 10;">
+        <div class="container" style="padding-top: 6rem; padding-bottom: 6rem; text-align: center;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Everything you need to succeed</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 3rem auto;">Scholar Rank replaces a dozen disjointed tools with one seamless, beautiful workspace.</p>
+            
+            <div class="features-grid">
+                <div class="feature-card glass-panel" style="background: #f8fafc; border: none;">
+                    <div class="feature-icon">📚</div>
+                    <h3>Smart Library</h3>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Access curated study materials, lecture notes, and educational resources instantly from your teachers.</p>
+                </div>
+                
+                <div class="feature-card glass-panel" style="background: #f8fafc; border: none;">
+                    <div class="feature-icon">🎥</div>
+                    <h3>Virtual Classroom</h3>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Never miss a link again. Join your HD Zoom lectures directly from your personalized dashboard.</p>
+                </div>
 
-    <!-- Stats Section -->
-    <section class="features-section">
-        <div class="features-container">
-            <div class="info-card">
-                <h3>� Platform Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">10K+</div>
-                        <div class="stat-label">Active Scholars</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">500+</div>
-                        <div class="stat-label">Institutions</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">50K+</div>
-                        <div class="stat-label">Resources Shared</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">98%</div>
-                        <div class="stat-label">Success Rate</div>
-                    </div>
+                <div class="feature-card glass-panel" style="background: #f8fafc; border: none;">
+                    <div class="feature-icon">📝</div>
+                    <h3>Live Assessments</h3>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">Take interactive online tests and view your grades and academic analytics the moment you finish.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="hero-section" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);">
-        <div class="hero-content">
-            <h2>Ready to Climb the Academic Ladder?</h2>
-            <p>Join thousands of scholars already ranking their way to academic excellence.</p>
-            <div class="hero-buttons">
-                <a href="/login" class="btn btn-primary btn-large">Start Your Journey</a>
-                <a href="/register" class="btn btn-outline btn-large">Sign Up Now</a>
-            </div>
+    <section style="background: linear-gradient(135deg, var(--primary), #9333EA); color: white; padding: 6rem 2rem; text-align: center;">
+        <div class="container">
+            <h2 style="font-size: 3rem; margin-bottom: 1.5rem; color: white;">Ready to climb the academic ladder?</h2>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Join the next generation of education. Set up your classroom or start learning in minutes.
+            </p>
+            <a href="/register" class="btn" style="background: white; color: var(--primary); font-size: 1.2rem; padding: 1rem 2.5rem; border-radius: 99px;">Create Free Account</a>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="main-footer">
-        <div class="footer-container">
+    <footer style="background: #111827; color: #9CA3AF; padding: 4rem 2rem; text-align: center;">
+        <div class="container">
+            <h3 style="color: white; font-size: 1.5rem; margin-bottom: 1rem;"><span style="color: var(--primary)">Scholar</span>Rank</h3>
             <p>&copy; 2024 Scholar Rank. Empowering Academic Excellence Worldwide.</p>
-            <div class="footer-links">
-                <a href="#" class="footer-link">About</a>
-                <a href="#" class="footer-link">Features</a>
-                <a href="#" class="footer-link">Pricing</a>
-                <a href="#" class="footer-link">Support</a>
+            <div style="margin-top: 2rem; display: flex; gap: 2rem; justify-content: center;">
+                <a href="#" style="color: #9CA3AF; text-decoration: none;">Privacy</a>
+                <a href="#" style="color: #9CA3AF; text-decoration: none;">Terms</a>
+                <a href="#" style="color: #9CA3AF; text-decoration: none;">Support</a>
             </div>
         </div>
     </footer>

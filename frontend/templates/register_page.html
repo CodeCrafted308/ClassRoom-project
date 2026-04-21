@@ -5,53 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Scholar Rank</title>
     <link rel="stylesheet" href="/static/css/scholar-rank.css">
-    <script src="/static/js/theme.js"></script>
 </head>
-<body class="login-background">
-    <div class="login-container">
-        <div class="login-box glass">
-            <div class="login-header">
-                <h1> Scholar Rank</h1>
-                <p class="login-tagline">Start Your Academic Journey Today</p>
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-                    <span id="theme-icon">🌙</span>
-                </button>
+<body>
+    <header class="main-header">
+        <div class="container header-content">
+            <a href="/" class="brand">🎓 Scholar Rank</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/login" class="btn btn-outline">Sign In</a>
             </div>
-            
-            <!-- Register Form -->
-            <div class="form-container">
-                <form id="registerForm">
-                    <div class="form-group">
-                        <label for="register-name">Full Name</label>
-                        <input type="text" id="register-name" placeholder="Enter your full name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-email">Email Address</label>
-                        <input type="email" id="register-email" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password">Password</label>
-                        <input type="password" id="register-password" placeholder="Create a password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-role">I am a</label>
-                        <select id="register-role" required>
-                            <option value="">Select your role</option>
-                            <option value="student">Student</option>
-                            <option value="teacher">Teacher</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Create Account</button>
-                </form>
-                
-                <div class="auth-footer">
-                    <p>Already have an account? <a href="/login" class="auth-link">Login</a></p>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <div class="glass-panel auth-card">
+            <div class="auth-header">
+                <h2>Create Account</h2>
+                <p class="item-meta">Join Scholar Rank today.</p>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="name" class="form-control" required placeholder="John Doe">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-control" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" required placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">I am a...</label>
+                    <select id="role" class="form-control" required>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                <div id="errorMessage" style="color: #EF4444; margin-bottom: 1rem; font-size: 0.9rem; display: none;"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%">Create Account</button>
+            </form>
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                Already have an account? <a href="/login" style="color: var(--primary); text-decoration: none; font-weight: 500;">Log in</a>
             </div>
-            
-            <div id="message" class="message"></div>
         </div>
     </div>
-    <script src="/static/js/register-auth.js"></script>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = data.role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard';
+                } else {
+                    const data = await response.json();
+                    errorMsg.textContent = data.detail || 'Registration failed. Please try again.';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'A network error occurred.';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

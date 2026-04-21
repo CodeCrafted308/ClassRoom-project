@@ -1,299 +1,92 @@
-# FastAPI Classroom Management System
+# Scholar Rank - Education Platform
 
-A modern web-based classroom management system built with FastAPI, MongoDB, and responsive frontend technologies.
+A modern, premium Classroom Management System built with FastAPI, MongoDB, and Vanilla JS/CSS. This platform allows teachers to manage course materials, post notices, schedule Zoom classes, and create custom-graded tests. Students get a personalized dashboard featuring a "Teacher Directory" to filter content specifically by instructor.
 
-## Features
+## 🚀 Key Features
 
-- **User Authentication**: Secure login/registration system for teachers and students
-- **Role-based Access**: Different interfaces for teachers and students
-- **File Management**: Upload and download study materials
-- **Notice Board**: Post and view important announcements
-- **Test Management**: Create, conduct, and grade online tests
-- **Student Records**: Track attendance and academic performance
-- **Zoom Integration**: Manage virtual classroom links
-
-## Tech Stack
-
-### Backend
-- **FastAPI**: Modern, fast web framework for building APIs
-- **MongoDB**: NoSQL database for data storage
-- **Pydantic**: Data validation and settings management
-- **Uvicorn**: ASGI server for FastAPI
-
-### Frontend
-- **HTML5/CSS3/JavaScript**: Responsive web interface
-- **Bootstrap**: UI framework for responsive design
-- **Jinja2**: Template engine for dynamic contents during active time windows
-
-## Prerequisites
-
-Before running the application, ensure you have:
-
-1. **Python 3.11+** installed
-2. **MongoDB** installed and running (or use Docker)
-3. **Docker and Docker Compose** (optional, for containerized deployment)
-
-## Setup Instructions
-
-### Local Development (Without Docker)
-
-1. Create and activate a virtual environment (recommended)
-
-```powershell
-python -m venv venv
-# On Windows (PowerShell)
-.\venv\Scripts\Activate.ps1
-# On macOS/Linux
-source venv/bin/activate
-```
-
-2. Install Python dependencies
-
-```powershell
-pip install -r backend/requirements.txt
-```
-
-3. Start MongoDB (optional but recommended for persistent data)
-
-- If running locally: start `mongod` or use your OS service manager
-- Or use MongoDB Atlas and set the `MONGO_URI` environment variable
-
-4. Run the FastAPI server (uvicorn)
-
-```powershell
-# from project root
-uvicorn backend.src.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Open http://localhost:8000/login in your browser. API docs are at http://localhost:8000/docs
-
-### Docker (optional)
-
-You can containerize the application with Docker and MongoDB. If you prefer
-to run using Docker Compose, create a `docker-compose.yml` that starts both
-the FastAPI app and a MongoDB service, then run:
-
-```bash
-docker-compose up --build
-```
-
-The FastAPI server in the container should expose port 8000 by default. If
-you don't use Docker, follow the local development instructions above.
-
-## First-Time Setup
-
-### Create Your First Account
-
-1. Navigate to `http://localhost:5000`
-2. Click on the **Register** tab
-3. Fill in the registration form:
-   - Full Name
-   - Email
-   - Password
-   - Role: Select **Teacher** or **Student**
-4. Click **Register**
-
-### Create a Teacher Account
-
-For the best experience, create a teacher account first:
-- Register with role: **Teacher**
-- This allows you to:
-  - Upload notes
-  - Create tests
-  - Post notices
-  - Set Zoom links
-  - Manage student records
-
-### Create Student Accounts
-
-- Register with role: **Student**
-- Or have a teacher create student accounts through the system
-
-## Usage Guide
-
-### For Teachers
-
-1. **Login** with your teacher credentials
-2. **Upload Notes**:
-   - Go to "Notes Management"
-   - Fill in title, subject, description
-   - Upload file (PDF, DOCX, PPT)
-   - Click "Upload Note"
-
-3. **Manage Student Records**:
-   - Go to "Student Records"
-   - Click "View/Edit Records" for any student
-   - Update test scores, attendance, or notes
-   - Click "Update Records"
-
-4. **Post Notices**:
-   - Go to "Notice Board"
-   - Enter title and content
-   - Click "Post Notice"
-
-5. **Set Zoom Link**:
-   - Go to "Zoom Class"
-   - Enter Zoom meeting URL
-   - Optionally add Meeting ID, Password, and Scheduled Time
-   - Click "Set Zoom Link"
-
-6. **Create Tests**:
-   - Go to "Test Management"
-   - Click "Add Question" to add multiple-choice questions
-   - Set start and end times
-   - Click "Create Test"
-   - View results by clicking "View Results"
-
-### For Students
-
-1. **Login** with your student credentials
-2. **View Notes**:
-   - Go to "Notes" section
-   - Click "Download" to download any note
-
-3. **View Records**:
-   - Go to "My Records"
-   - View your test scores, attendance, and teacher notes
-
-4. **View Notices**:
-   - Go to "Notices" section
-   - Read all posted announcements
-
-5. **Join Zoom Class**:
-   - Go to "Zoom Class" section
-   - Click "Join Zoom Meeting" link
-
-6. **Take Tests**:
-   - Go to "Tests" section
-   - Click "Take Test" for active tests
-   - Answer all questions
-   - Click "Submit Test"
-   - View your score immediately
-
-## Project Structure
-
-```
-classroom/
-├── backend/
-│   ├── requirements.txt       # Python dependencies for backend
-│   └── src/
-│       └── main.py            # FastAPI application entrypoint
-├── frontend/
-│   ├── templates/             # Jinja2 templates
-│   └── static/                # Static assets (css, js, images)
-├── README.md                  # This file
-├── .gitignore                 # Git ignore rules
-└── uploads/                   # Uploaded files (created automatically)
-```
-
-## API Endpoints
-
-### Authentication
-- `GET /` - Redirects to login or dashboard
-- `GET /login` - Login page
-- `POST /login` - Authenticate user
-- `POST /register` - Register new user
-- `GET /logout` - Logout user
-
-### Teacher APIs
-- `GET /api/teacher/students` - Get all students
-- `GET /api/teacher/notes` - Get all notes
-- `POST /api/teacher/notes` - Upload new note
-- `DELETE /api/teacher/notes/<id>` - Delete note
-- `GET /api/teacher/notices` - Get all notices
-- `POST /api/teacher/notices` - Post new notice
-- `GET /api/teacher/zoom-link` - Get current zoom link
-- `POST /api/teacher/zoom-link` - Set zoom link
-- `GET /api/teacher/tests` - Get all tests
-- `POST /api/teacher/tests` - Create new test
-- `GET /api/teacher/tests/<id>/results` - Get test results
-- `GET /api/teacher/student-records/<id>` - Get student records
-- `POST /api/teacher/student-records/<id>` - Update student records
-
-### Student APIs
-- `GET /api/student/notes` - Get all notes
-- `GET /api/student/download/<filename>` - Download note file
-- `GET /api/student/records` - Get own records
-- `GET /api/student/notices` - Get all notices
-- `GET /api/student/zoom-link` - Get zoom link
-- `GET /api/student/tests` - Get active tests
-- `POST /api/student/tests/<id>/submit` - Submit test
-
-## Troubleshooting
-
-### MongoDB Connection Issues
-
-**Error: "pymongo.errors.ServerSelectionTimeoutError"**
-
-- Ensure MongoDB is running: `mongod` or check service status
-- For Docker: Check if MongoDB container is running: `docker ps`
-- Verify connection string in `app.py`
-
-### Port Already in Use
-
-**Error: "Address already in use"**
-
-- Change port in `app.py`: `app.run(debug=True, host='0.0.0.0', port=5001)`
-- Or stop the process using port 5000
-
-### File Upload Issues
-
-- Ensure `uploads/` directory exists and has write permissions
-- Check file size (max 16MB)
-- Verify file types are allowed
-
-### Docker Issues
-
-- Ensure Docker Desktop is running
-- Try rebuilding: `docker-compose up --build`
-- Check logs: `docker-compose logs`
-
-## Security Notes
-
-⚠️ **Important for Production:**
-
-1. Change `app.secret_key` in `app.py` to a secure random string
-2. Use environment variables for sensitive data
-3. Implement HTTPS
-4. Add rate limiting
-5. Sanitize file uploads
-6. Use MongoDB authentication
-7. Implement proper session management
-8. Add CSRF protection
-
-## Development
-
-### Running in Development Mode
-
-The Flask app runs in debug mode by default. For production:
-
-```python
-app.run(debug=False, host='0.0.0.0', port=5000)
-```
-
-### Database Management
-
-Access MongoDB shell:
-```bash
-# Local MongoDB
-mongosh
-
-# Docker MongoDB
-docker exec -it classroom_mongodb mongosh
-```
-
-## License
-
-This project is open source and available for educational purposes.
-
-## Support
-
-For issues or questions, please check:
-- Flask documentation: https://flask.palletsprojects.com/
-- MongoDB documentation: https://docs.mongodb.com/
-- Docker documentation: https://docs.docker.com/
+* **Modern Glassmorphism UI**: A beautiful, highly responsive frontend design with dynamic micro-animations.
+* **Teacher Directory**: Students can browse and filter content exclusively by the teacher who uploaded it.
+* **Dynamic Testing System**: Teachers can create multiple-choice tests, set custom marks per question, and students get instantly graded upon submission.
+* **Secure JWT Authentication**: Robust, cookie-based JWT authentication ensuring secure sessions across the application.
+* **Strict MongoDB Integration**: Fully relies on MongoDB for persistent, reliable data storage.
 
 ---
 
-**Happy Teaching! 🎓**
+## 🛠️ Technology Stack
 
+* **Backend**: FastAPI, Uvicorn, Python-Jose (JWT)
+* **Database**: MongoDB (PyMongo)
+* **Frontend**: HTML5, Vanilla JavaScript, CSS3 (Custom Design System)
+* **Security**: Passlib (Bcrypt hashing), HTTPOnly Cookies
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+1. Python 3.8+
+2. A running instance of **MongoDB** locally (defaulting to `mongodb://localhost:27017/`) or remotely.
+
+### Installation
+
+1. **Clone the repository and enter the directory**:
+   ```bash
+   cd classroom
+   ```
+
+2. **Create and activate a virtual environment** (Optional but recommended):
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**:
+   ```bash
+   pip install fastapi uvicorn pymongo passlib[bcrypt] python-jose python-multipart
+   ```
+
+4. **Environment Variables**:
+   By default, the application runs out-of-the-box for local testing. If you are deploying, set the following environment variables:
+   * `MONGO_URI`: Your MongoDB connection string (default: `mongodb://localhost:27017/`)
+   * `SECRET_KEY`: A strong, random string for JWT encoding.
+
+### Running the Application
+
+To start the server, simply run the provided startup script from the root directory:
+
+```bash
+python start.py
+```
+
+The application will start on **http://localhost:8000**.
+
+---
+
+## 🧪 Testing
+
+You can test the application by navigating to `http://localhost:8000` and clicking **Sign Up** to create new accounts. 
+
+Alternatively, if your database has the original mock data populated, you can try logging in with the old test accounts:
+* **Teacher**: `teacher@scholarrank.com` / `teacher123`
+* **Student**: `student@scholarrank.com` / `student123`
+
+---
+
+## 📂 Project Structure
+
+```text
+classroom/
+├── backend/
+│   ├── src/
+│   │   ├── routers/          # API endpoints (auth, student, teacher)
+│   │   ├── database.py       # MongoDB connection logic
+│   │   ├── main.py           # FastAPI entry point & app mounting
+│   │   ├── models.py         # Pydantic schemas for data validation
+│   │   └── utils/            # JWT and hashing utilities
+├── frontend/
+│   ├── static/               # CSS, JS, Images (scholar-rank.css)
+│   └── templates/            # HTML views (dashboards, landing page)
+├── start.py                  # Single entry point script to run the server
+└── README.md
+```
